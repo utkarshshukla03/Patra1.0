@@ -76,7 +76,9 @@ class _LoginPageState extends State<LoginPage> {
               // SizedBox(height: 10),
 
               // image
-              Image.asset('assets/Talk.webp'),
+              Image(
+                image: AssetImage('assets/Talk.webp'),
+              ),
               //email/username
 
               Padding(
