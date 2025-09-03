@@ -1,10 +1,11 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:patra_initial/pages/loginPage.dart';
+import 'package:patra_initial/pages/auth/loginPage.dart';
 
-import '../resources/auth_method.dart';
-import 'homePage.dart';
+import '../../resources/auth_method.dart';
+import '../hobbiesPage.dart';
+// import '../homePage.dart';
 // import 'package:prem_patra1/resources/auth_method.dart';
 // import 'package:prem_patra1/resources/auth_methods.dart';
 // import 'package:firebase_auth/firebase_auth.dart';
@@ -24,6 +25,8 @@ class SignUp extends StatefulWidget {
 class _SignUpState extends State<SignUp> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   Uint8List? _image;
   bool _isloading = false;
@@ -32,6 +35,7 @@ class _SignUpState extends State<SignUp> {
     super.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     _usernameController.dispose();
   }
 
@@ -52,11 +56,16 @@ class _SignUpState extends State<SignUp> {
   }
 
   void signUpUser() async {
+    String email = _emailController.text.trim();
+    if (!email.endsWith('@thapar.edu')) {
+      showSnackBar('Please use your thapar.edu email ID to sign up.', context);
+      return;
+    }
     setState(() {
       _isloading = true;
     });
     String res = await AuthMethods().signUpUser(
-        email: _emailController.text,
+        email: email,
         password: _passwordController.text,
         username: _usernameController.text,
         file: _image!);
@@ -67,9 +76,16 @@ class _SignUpState extends State<SignUp> {
     if (res != 'success') {
       showSnackBar(res, context);
     } else {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => homePage(),
-      ));
+      // Go to next page for more questions
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (context) => HobbiesPage(
+              // email: email,
+              // username: _usernameController.text,
+              // image: _image!,
+              ),
+        ),
+      );
     }
   }
 
@@ -115,27 +131,27 @@ class _SignUpState extends State<SignUp> {
               // ),
 
               // circular widget to accept and show our selected file
-              Stack(
-                children: [
-                  _image != null
-                      ? CircleAvatar(
-                          radius: 64,
-                          backgroundImage: MemoryImage(_image!),
-                        )
-                      : const CircleAvatar(
-                          radius: 64,
-                          backgroundImage: NetworkImage(
-                              'https://as2.ftcdn.net/v2/jpg/02/15/84/43/1000_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg'),
-                        ),
-                  Positioned(
-                      bottom: -10,
-                      left: 80,
-                      child: IconButton(
-                        onPressed: selectImage,
-                        icon: const Icon(Icons.add_a_photo),
-                      ))
-                ],
-              ),
+              // Stack(
+              //   children: [
+              //     _image != null
+              //         ? CircleAvatar(
+              //             radius: 64,
+              //             backgroundImage: MemoryImage(_image!),
+              //           )
+              //         : const CircleAvatar(
+              //             radius: 64,
+              //             backgroundImage: NetworkImage(
+              //                 'https://as2.ftcdn.net/v2/jpg/02/15/84/43/1000_F_215844325_ttX9YiIIyeaR7Ne6EaLLjMAmy4GvPC69.jpg'),
+              //           ),
+              //     Positioned(
+              //         bottom: -10,
+              //         left: 80,
+              //         child: IconButton(
+              //           onPressed: selectImage,
+              //           icon: const Icon(Icons.add_a_photo),
+              //         ))
+              //   ],
+              // ),
               SizedBox(height: 20),
 
               ///username
@@ -182,7 +198,6 @@ class _SignUpState extends State<SignUp> {
 
               SizedBox(height: 10),
               // password
-
               InkWell(
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
@@ -198,7 +213,31 @@ class _SignUpState extends State<SignUp> {
                         controller: _passwordController,
                         obscureText: true,
                         decoration: InputDecoration(
-                            border: InputBorder.none, hintText: 'Passowrd'),
+                            border: InputBorder.none, hintText: 'Password'),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(height: 10),
+              // confirm password
+              InkWell(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black),
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 20.0),
+                      child: TextField(
+                        controller: _confirmPasswordController,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                            border: InputBorder.none,
+                            hintText: 'Confirm Password'),
                       ),
                     ),
                   ),
@@ -206,12 +245,9 @@ class _SignUpState extends State<SignUp> {
               ),
               SizedBox(height: 15),
 
-              // Sign up button
+              // Next button
               GestureDetector(
-                // onTap: signUpUser,
-
-                // print(res);
-
+                onTap: signUpUser,
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 25.0),
                   child: Container(
@@ -227,7 +263,7 @@ class _SignUpState extends State<SignUp> {
                                 ),
                               )
                             : const Text(
-                                'Sign Up',
+                                'Next',
                                 style: TextStyle(
                                     color: Colors.white,
                                     fontSize: 15,

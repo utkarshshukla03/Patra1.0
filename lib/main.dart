@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-
-import 'pages/loginPage.dart';
+import 'pages/auth/loginPage.dart';
+import 'pages/hobbiesPage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Patra',
       theme: ThemeData(primarySwatch: Colors.grey),
-      home: const LoginPage(),
+      home: LoginPage(),
     );
   }
 }
