@@ -590,8 +590,15 @@ if __name__ == "__main__":
         print("   GET  /health - Health check")
         print("   GET  /recommendations/<user_uid>?count=10 - Get recommendations")
         print("   POST /refresh-data - Refresh data from Firebase")
-        print("\n� Server starting on http://localhost:5000")
-        app.run(host='0.0.0.0', port=5000, debug=True)
+        
+        # Get port from environment variable for Render deployment
+        port = int(os.environ.get('PORT', 5000))
+        print(f"\n🚀 Server starting on port {port}")
+        
+        # Configure CORS
+        CORS(app)
+        # Run the Flask app with production settings
+        app.run(host='0.0.0.0', port=port, debug=False)
     else:
         # Test mode
         print(f"�👥 Available users: {list(users['username'].head(10))}")
