@@ -1,4 +1,5 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 
 class ConfigService {
   static bool _isInitialized = false;
@@ -8,6 +9,13 @@ class ConfigService {
 
   // Initialize environment variables
   static Future<void> initialize() async {
+    // For web builds, skip .env file loading as it doesn't work with server environments
+    if (kIsWeb) {
+      _isInitialized = true;
+      print('🌐 Running on web - using compile-time environment variables');
+      return;
+    }
+
     try {
       // Load API keys first (contains all secrets)
       await dotenv.load(fileName: "api_keys.env");
@@ -38,19 +46,35 @@ class ConfigService {
   // ========================================
 
   static String get firebaseProjectId =>
-      dotenv.env['FIREBASE_PROJECT_ID'] ?? 'patra-dating-app';
+      kIsWeb 
+        ? const String.fromEnvironment('FIREBASE_PROJECT_ID', defaultValue: 'patra-dating-app')
+        : dotenv.env['FIREBASE_PROJECT_ID'] ?? 'patra-dating-app';
+        
   static String get firebaseAuthDomain =>
-      dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? 'patra-dating-app.firebaseapp.com';
+      kIsWeb
+        ? const String.fromEnvironment('FIREBASE_AUTH_DOMAIN', defaultValue: 'patra-dating-app.firebaseapp.com')
+        : dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? 'patra-dating-app.firebaseapp.com';
+        
   static String get firebaseStorageBucket =>
-      dotenv.env['FIREBASE_STORAGE_BUCKET'] ??
-      'patra-dating-app.firebasestorage.app';
+      kIsWeb
+        ? const String.fromEnvironment('FIREBASE_STORAGE_BUCKET', defaultValue: 'patra-dating-app.firebasestorage.app')
+        : dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? 'patra-dating-app.firebasestorage.app';
 
   // Web
   static String get firebaseWebApiKey =>
-      dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
-  static String get firebaseWebAppId => dotenv.env['FIREBASE_WEB_APP_ID'] ?? '';
+      kIsWeb
+        ? const String.fromEnvironment('FIREBASE_WEB_API_KEY', defaultValue: 'AIzaSyD13p6Ff7pygplneL9tRNAbLr_ASwo0H-I')
+        : dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
+        
+  static String get firebaseWebAppId => 
+      kIsWeb
+        ? const String.fromEnvironment('FIREBASE_WEB_APP_ID', defaultValue: '1:88069763481:web:d7c2e6b73aa1124a22a308')
+        : dotenv.env['FIREBASE_WEB_APP_ID'] ?? '';
+        
   static String get firebaseWebMessagingSenderId =>
-      dotenv.env['FIREBASE_WEB_MESSAGING_SENDER_ID'] ?? '88069763481';
+      kIsWeb
+        ? const String.fromEnvironment('FIREBASE_WEB_MESSAGING_SENDER_ID', defaultValue: '88069763481')
+        : dotenv.env['FIREBASE_WEB_MESSAGING_SENDER_ID'] ?? '88069763481';
   static String get firebaseWebMeasurementId =>
       dotenv.env['FIREBASE_WEB_MEASUREMENT_ID'] ?? 'G-MEASUREMENT_ID';
 
@@ -74,12 +98,24 @@ class ConfigService {
   // ========================================
 
   static String get cloudinaryCloudName =>
-      dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
+      kIsWeb
+        ? const String.fromEnvironment('CLOUDINARY_CLOUD_NAME', defaultValue: 'dugh2jryo')
+        : dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
+        
   static String get cloudinaryUploadPreset =>
-      dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
-  static String get cloudinaryApiKey => dotenv.env['CLOUDINARY_API_KEY'] ?? '';
+      kIsWeb
+        ? const String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET', defaultValue: 'patra_dating_app')
+        : dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
+        
+  static String get cloudinaryApiKey => 
+      kIsWeb
+        ? const String.fromEnvironment('CLOUDINARY_API_KEY', defaultValue: '893895154948756')
+        : dotenv.env['CLOUDINARY_API_KEY'] ?? '';
+        
   static String get cloudinaryApiSecret =>
-      dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
+      kIsWeb
+        ? const String.fromEnvironment('CLOUDINARY_API_SECRET', defaultValue: 'YeHOnCzBdSXjc_lXn8tOYoGIH-k')
+        : dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
 
   // ========================================
   // 🤖 ML SERVICE CONFIGURATION
@@ -114,7 +150,10 @@ class ConfigService {
   // 🏗️  DEVELOPMENT ENVIRONMENT
   // ========================================
 
-  static String get environment => dotenv.env['ENVIRONMENT'] ?? 'development';
+  static String get environment => 
+      kIsWeb
+        ? const String.fromEnvironment('ENVIRONMENT', defaultValue: 'production')
+        : dotenv.env['ENVIRONMENT'] ?? 'development';
   static bool get debugMode =>
       dotenv.env['DEBUG_MODE']?.toLowerCase() == 'true';
   static bool get verboseLogging =>
