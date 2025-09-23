@@ -125,9 +125,8 @@ class ConfigService {
 
   static String get mlServiceBaseUrl => kIsWeb
       ? const String.fromEnvironment('ML_SERVICE_BASE_URL',
-          defaultValue: 'https://your-app-name.up.railway.app')
+          defaultValue: 'https://patra-ml-service.onrender.com')
       : dotenv.env['ML_SERVICE_BASE_URL'] ?? 'http://localhost:5000';
-
   static String get mlServiceHealthEndpoint =>
       dotenv.env['ML_SERVICE_HEALTH_ENDPOINT'] ?? '/health';
   static String get mlServiceRecommendationsEndpoint =>

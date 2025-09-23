@@ -10,14 +10,35 @@ from flask_cors import CORS
 import os
 
 # -------------------- FIREBASE CONFIG --------------------
-# Initialize Firebase Admin SDK (you need to download service account key)
-# Place your Firebase service account key JSON file in the same directory
-try:
-    cred = credentials.Certificate("firebase-service-account.json")  # You need to add this file
-    firebase_admin.initialize_app(cred)
-except Exception as e:
-    print(f"Firebase initialization failed: {e}")
-    print("Please ensure firebase-service-account.json is in the same directory")
+# Initialize Firebase Admin SDK for production deployment
+import json
+
+def initialize_firebase():
+    """Initialize Firebase Admin SDK for production deployment"""
+    try:
+        # Try to get Firebase credentials from environment variable (for Render/production)
+        firebase_config = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
+        if firebase_config:
+            # Parse JSON from environment variable
+            cred_dict = json.loads(firebase_config)
+            cred = credentials.Certificate(cred_dict)
+            print("✅ Using Firebase credentials from environment variable")
+        else:
+            # Fallback to local file (for development)
+            cred = credentials.Certificate("firebase-service-account.json")
+            print("✅ Using local Firebase service account file")
+        
+        firebase_admin.initialize_app(cred)
+        print("✅ Firebase initialized successfully")
+        return True
+    except Exception as e:
+        print(f"❌ Firebase initialization failed: {e}")
+        return False
+
+# Initialize Firebase
+firebase_initialized = initialize_firebase()
+if not firebase_initialized:
+    print("❌ Cannot proceed without Firebase connection")
     exit(1)
 
 db = firestore.client()
