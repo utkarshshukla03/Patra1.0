@@ -47,11 +47,8 @@ class ConfigService {
 
   // Web
   static String get firebaseWebApiKey =>
-      dotenv.env['FIREBASE_WEB_API_KEY'] ??
-      'AIzaSyD13p6Ff7pygplneL9tRNAbLr_ASwo0H-I';
-  static String get firebaseWebAppId =>
-      dotenv.env['FIREBASE_WEB_APP_ID'] ??
-      '1:88069763481:web:d7c2e6b73aa1124a22a308';
+      dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
+  static String get firebaseWebAppId => dotenv.env['FIREBASE_WEB_APP_ID'] ?? '';
   static String get firebaseWebMessagingSenderId =>
       dotenv.env['FIREBASE_WEB_MESSAGING_SENDER_ID'] ?? '88069763481';
   static String get firebaseWebMeasurementId =>
@@ -59,13 +56,11 @@ class ConfigService {
 
   // Android
   static String get firebaseAndroidApiKey =>
-      dotenv.env['FIREBASE_ANDROID_API_KEY'] ??
-      'AIzaSyDL1F5KKwV8pZqI1CqGqZPL8vGh3MsOAeU';
+      dotenv.env['FIREBASE_ANDROID_API_KEY'] ?? '';
   static String get firebaseAndroidAppId =>
-      dotenv.env['FIREBASE_ANDROID_APP_ID'] ??
-      '1:123456789012:android:abcdef1234567890abcdef';
+      dotenv.env['FIREBASE_ANDROID_APP_ID'] ?? '';
   static String get firebaseAndroidMessagingSenderId =>
-      dotenv.env['FIREBASE_ANDROID_MESSAGING_SENDER_ID'] ?? '123456789012';
+      dotenv.env['FIREBASE_ANDROID_MESSAGING_SENDER_ID'] ?? '';
 
   // iOS
   static String get firebaseIosApiKey =>
@@ -79,9 +74,9 @@ class ConfigService {
   // ========================================
 
   static String get cloudinaryCloudName =>
-      dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? 'dugh2jryo';
+      dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
   static String get cloudinaryUploadPreset =>
-      dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? 'patra_dating_app';
+      dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
   static String get cloudinaryApiKey => dotenv.env['CLOUDINARY_API_KEY'] ?? '';
   static String get cloudinaryApiSecret =>
       dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
