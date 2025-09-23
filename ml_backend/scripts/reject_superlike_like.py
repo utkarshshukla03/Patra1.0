@@ -19,10 +19,23 @@ def initialize_firebase():
         # Try to get Firebase credentials from environment variable (for Render/production)
         firebase_config = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
         if firebase_config:
-            # Parse JSON from environment variable
-            cred_dict = json.loads(firebase_config)
-            cred = credentials.Certificate(cred_dict)
-            print("✅ Using Firebase credentials from environment variable")
+            try:
+                # Try to parse JSON from environment variable
+                cred_dict = json.loads(firebase_config)
+                # Ensure all required fields are present
+                required_fields = ['type', 'project_id', 'private_key_id', 'private_key', 
+                                 'client_email', 'client_id', 'auth_uri', 'token_uri']
+                if all(field in cred_dict for field in required_fields):
+                    # Ensure private_key is properly formatted
+                    if not cred_dict['private_key'].startswith('-----BEGIN PRIVATE KEY-----'):
+                        cred_dict['private_key'] = f"-----BEGIN PRIVATE KEY-----\n{cred_dict['private_key']}\n-----END PRIVATE KEY-----\n"
+                    cred = credentials.Certificate(cred_dict)
+                    print("✅ Using Firebase credentials from environment variable")
+                else:
+                    raise ValueError("Missing required fields in Firebase credentials")
+            except json.JSONDecodeError:
+                print("❌ Failed to parse Firebase credentials JSON")
+                raise
         else:
             # Fallback to local file (for development)
             cred = credentials.Certificate("firebase-service-account.json")
