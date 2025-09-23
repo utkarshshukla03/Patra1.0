@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../resources/auth_method.dart';
-import '../homePage.dart';
-import '../../pages/auth/signUpPage.dart'; 
+import '../../widgets/main_navigation_wrapper.dart';
+import '../../pages/auth/signUpPage.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -33,18 +33,20 @@ class _LoginPageState extends State<LoginPage> {
       _isloading = true;
     });
     String res = await AuthMethods().loginUser(
-        email: _emailController.text, password: _passwordController.text);
+        email: _emailController.text.trim(),
+        password: _passwordController.text);
 
-    if (res == "Succces") {
+    if (res == "Success") {
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (context) => homePage(),
+        builder: (context) => MainNavigationWrapper(),
       ));
-    } else if (res != "Succces") {
+    } else {
       showSnackBar(res, context);
-      setState(() {
-        _isloading = false;
-      });
-    } else {}
+    }
+
+    setState(() {
+      _isloading = false;
+    });
   }
 
   void navigateToSignUp() {
@@ -53,7 +55,13 @@ class _LoginPageState extends State<LoginPage> {
     ));
   }
 
+  @override
   Widget build(BuildContext context) {
+    // You can add this to your login page for testing
+    AuthMethods().testFirebaseConnection().then((result) {
+      print(result);
+    });
+
     return Scaffold(
         backgroundColor: Colors.white,
         body: SafeArea(
@@ -75,8 +83,18 @@ class _LoginPageState extends State<LoginPage> {
               // SizedBox(height: 10),
 
               // image
-              Image(
-                image: AssetImage('assets/Talk.webp'),
+              Container(
+                height: 200,
+                child: Image.asset(
+                  'assets/Talk.webp',
+                  errorBuilder: (context, error, stackTrace) {
+                    return Icon(
+                      Icons.image_not_supported,
+                      size: 100,
+                      color: Colors.grey,
+                    );
+                  },
+                ),
               ),
               //email/username
 

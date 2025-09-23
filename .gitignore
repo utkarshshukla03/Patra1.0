@@ -1,3 +1,33 @@
+# ========================================
+# 🚨 CRITICAL: SENSITIVE FILES - NEVER COMMIT
+# ========================================
+
+# Environment variables with API keys and secrets
+.env
+api_keys.env
+.env.local
+.env.*.local
+**/*.env
+
+# Firebase sensitive files
+**/firebase-service-account.json
+**/google-services.json
+**/GoogleService-Info.plist
+**/.firebaserc
+**/firebase.json
+**/firebase-debug.log
+**/.firebase/
+
+# API keys and configuration files
+**/config/api_keys.dart
+**/config/secrets.dart
+**/*_keys.dart
+**/*_secrets.dart
+
+# ========================================
+# 📱 FLUTTER/DART SPECIFIC
+# ========================================
+
 # Miscellaneous
 *.class
 *.log
@@ -43,3 +73,8 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+data/
+dataconnect/
+data_seed/
+del-user/

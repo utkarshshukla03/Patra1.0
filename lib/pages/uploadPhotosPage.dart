@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
+import 'dart:io';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:reorderables/reorderables.dart';
+import '../services/cloudinary_service.dart';
+import '../widgets/main_navigation_wrapper.dart';
 
 class UploadPhotosPage extends StatefulWidget {
   @override
@@ -9,16 +13,81 @@ class UploadPhotosPage extends StatefulWidget {
 }
 
 class _UploadPhotosPageState extends State<UploadPhotosPage> {
-  List<Uint8List?> images = List.filled(6, null);
+  List<XFile?> imageFiles = List.filled(6, null);
   String bio = '';
+  final CloudinaryService _cloudinaryService = CloudinaryService();
+  bool _isUploading = false;
 
   Future<void> pickImage(int index) async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
-      final bytes = await image.readAsBytes();
       setState(() {
-        images[index] = bytes;
+        imageFiles[index] = image;
+      });
+    }
+  }
+
+  Future<void> _uploadPhotosAndFinish() async {
+    setState(() {
+      _isUploading = true;
+    });
+
+    try {
+      // Filter out null images and get the actual files
+      List<XFile> actualImages =
+          imageFiles.where((file) => file != null).cast<XFile>().toList();
+
+      if (actualImages.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Please add at least one photo')),
+        );
+        setState(() {
+          _isUploading = false;
+        });
+        return;
+      }
+
+      // Upload images to Cloudinary using XFile-compatible method
+      List<String> imageUrls =
+          await _cloudinaryService.uploadMultipleImagesFromXFiles(actualImages);
+
+      if (imageUrls.isNotEmpty) {
+        // Update user profile with image URLs and bio
+        bool success =
+            await _cloudinaryService.updateUserProfileImages(imageUrls);
+
+        if (bio.isNotEmpty) {
+          await _cloudinaryService.updateUserProfile(bio: bio);
+        }
+
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Photos uploaded successfully!')),
+          );
+
+          // Navigate to home page
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => MainNavigationWrapper()),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save profile data')),
+          );
+        }
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to upload images')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
       });
     }
   }
@@ -54,13 +123,27 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
                       decoration: BoxDecoration(
                         border: Border.all(color: Colors.pinkAccent),
                         borderRadius: BorderRadius.circular(12),
-                        color: Colors.pinkAccent.withOpacity(0.1),
+                        color: Colors.pinkAccent.withValues(alpha: 0.1),
                       ),
-                      child: images[index] != null
+                      child: imageFiles[index] != null
                           ? ClipRRect(
                               borderRadius: BorderRadius.circular(12),
-                              child: Image.memory(images[index]!,
-                                  fit: BoxFit.cover),
+                              child: kIsWeb
+                                  ? FutureBuilder<Uint8List>(
+                                      future: imageFiles[index]!.readAsBytes(),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.hasData) {
+                                          return Image.memory(snapshot.data!,
+                                              fit: BoxFit.cover);
+                                        } else {
+                                          return Center(
+                                              child:
+                                                  CircularProgressIndicator());
+                                        }
+                                      },
+                                    )
+                                  : Image.file(File(imageFiles[index]!.path),
+                                      fit: BoxFit.cover),
                             )
                           : Center(
                               child: Icon(Icons.add_a_photo,
@@ -71,8 +154,8 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
                 }),
                 onReorder: (oldIndex, newIndex) {
                   setState(() {
-                    final temp = images.removeAt(oldIndex);
-                    images.insert(newIndex, temp);
+                    final temp = imageFiles.removeAt(oldIndex);
+                    imageFiles.insert(newIndex, temp);
                   });
                 },
               ),
@@ -101,13 +184,28 @@ class _UploadPhotosPageState extends State<UploadPhotosPage> {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30)),
                   ),
-                  onPressed: () {
-                    // TODO: Save images and bio to database
-                    Navigator.of(context).pop();
-                  },
-                  child: Text('Finish',
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  onPressed: _isUploading ? null : _uploadPhotosAndFinish,
+                  child: _isUploading
+                      ? Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            Text('Uploading...',
+                                style: TextStyle(fontSize: 18)),
+                          ],
+                        )
+                      : Text('Finish',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],

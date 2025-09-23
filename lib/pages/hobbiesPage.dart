@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'dart:typed_data';
 import 'uploadPhotosPage.dart';
+import '../services/cloudinary_service.dart';
 
 class HobbiesPage extends StatefulWidget {
   // final String email;
@@ -22,9 +22,10 @@ class _HobbiesPageState extends State<HobbiesPage> {
   List<String> selectedHobbies = [];
   String? gender;
   DateTime? dob;
-  String? orientation;
-  String? relationshipType;
+  List<String> relationshipTypes = []; // Changed to List for multiple selection
   String aboutMe = '';
+  final CloudinaryService _cloudinaryService = CloudinaryService();
+  bool _isSaving = false;
 
   final List<String> hobbiesTags = [
     'Music',
@@ -221,11 +222,17 @@ class _HobbiesPageState extends State<HobbiesPage> {
                           children: orientationOptions.map((o) {
                             return ChoiceChip(
                               label: Text(o),
-                              selected: orientation == o,
+                              selected: relationshipTypes.contains(o),
                               selectedColor: Colors.pinkAccent.shade100,
                               onSelected: (val) {
                                 setState(() {
-                                  orientation = val ? o : null;
+                                  if (val) {
+                                    if (!relationshipTypes.contains(o)) {
+                                      relationshipTypes.add(o);
+                                    }
+                                  } else {
+                                    relationshipTypes.remove(o);
+                                  }
                                 });
                               },
                             );
@@ -310,11 +317,20 @@ class _HobbiesPageState extends State<HobbiesPage> {
                           children: interestTags.map((tag) {
                             return ChoiceChip(
                               label: Text(tag),
-                              selected: relationshipType == tag,
+                              selected: relationshipTypes
+                                  .contains(tag), // Check if tag is in the list
                               selectedColor: Colors.pinkAccent.shade100,
                               onSelected: (val) {
                                 setState(() {
-                                  relationshipType = val ? tag : null;
+                                  if (val) {
+                                    // Add tag if not already selected
+                                    if (!relationshipTypes.contains(tag)) {
+                                      relationshipTypes.add(tag);
+                                    }
+                                  } else {
+                                    // Remove tag if deselected
+                                    relationshipTypes.remove(tag);
+                                  }
                                 });
                               },
                             );
@@ -370,17 +386,64 @@ class _HobbiesPageState extends State<HobbiesPage> {
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(30)),
                     ),
-                    onPressed: () {
-                      // TODO: Save all data to database
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => UploadPhotosPage(),
-                        ),
-                      );
+                    onPressed: () async {
+                      setState(() {
+                        _isSaving = true;
+                      });
+
+                      try {
+                        // Save user preferences to Firestore
+                        bool success =
+                            await _cloudinaryService.updateUserProfile(
+                          dateOfBirth: dob,
+                          gender: gender,
+                          orientation: relationshipTypes,
+                          interests: selectedHobbies,
+                          bio: aboutMe,
+                        );
+
+                        if (success) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (context) => UploadPhotosPage(),
+                            ),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text('Failed to save preferences')),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      } finally {
+                        setState(() {
+                          _isSaving = false;
+                        });
+                      }
                     },
-                    child: Text('Next',
-                        style: TextStyle(
-                            fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: _isSaving
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                              Text('Saving...', style: TextStyle(fontSize: 18)),
+                            ],
+                          )
+                        : Text('Next',
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],
