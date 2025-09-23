@@ -45,36 +45,38 @@ class ConfigService {
   // 🔥 FIREBASE CONFIGURATION
   // ========================================
 
-  static String get firebaseProjectId =>
-      kIsWeb 
-        ? const String.fromEnvironment('FIREBASE_PROJECT_ID', defaultValue: 'patra-dating-app')
-        : dotenv.env['FIREBASE_PROJECT_ID'] ?? 'patra-dating-app';
-        
-  static String get firebaseAuthDomain =>
-      kIsWeb
-        ? const String.fromEnvironment('FIREBASE_AUTH_DOMAIN', defaultValue: 'patra-dating-app.firebaseapp.com')
-        : dotenv.env['FIREBASE_AUTH_DOMAIN'] ?? 'patra-dating-app.firebaseapp.com';
-        
-  static String get firebaseStorageBucket =>
-      kIsWeb
-        ? const String.fromEnvironment('FIREBASE_STORAGE_BUCKET', defaultValue: 'patra-dating-app.firebasestorage.app')
-        : dotenv.env['FIREBASE_STORAGE_BUCKET'] ?? 'patra-dating-app.firebasestorage.app';
+  static String get firebaseProjectId => kIsWeb
+      ? const String.fromEnvironment('FIREBASE_PROJECT_ID',
+          defaultValue: 'patra-dating-app')
+      : dotenv.env['FIREBASE_PROJECT_ID'] ?? 'patra-dating-app';
+
+  static String get firebaseAuthDomain => kIsWeb
+      ? const String.fromEnvironment('FIREBASE_AUTH_DOMAIN',
+          defaultValue: 'patra-dating-app.firebaseapp.com')
+      : dotenv.env['FIREBASE_AUTH_DOMAIN'] ??
+          'patra-dating-app.firebaseapp.com';
+
+  static String get firebaseStorageBucket => kIsWeb
+      ? const String.fromEnvironment('FIREBASE_STORAGE_BUCKET',
+          defaultValue: 'patra-dating-app.firebasestorage.app')
+      : dotenv.env['FIREBASE_STORAGE_BUCKET'] ??
+          'patra-dating-app.firebasestorage.app';
 
   // Web
-  static String get firebaseWebApiKey =>
-      kIsWeb
-        ? const String.fromEnvironment('FIREBASE_WEB_API_KEY', defaultValue: 'AIzaSyD13p6Ff7pygplneL9tRNAbLr_ASwo0H-I')
-        : dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
-        
-  static String get firebaseWebAppId => 
-      kIsWeb
-        ? const String.fromEnvironment('FIREBASE_WEB_APP_ID', defaultValue: '1:88069763481:web:d7c2e6b73aa1124a22a308')
-        : dotenv.env['FIREBASE_WEB_APP_ID'] ?? '';
-        
-  static String get firebaseWebMessagingSenderId =>
-      kIsWeb
-        ? const String.fromEnvironment('FIREBASE_WEB_MESSAGING_SENDER_ID', defaultValue: '88069763481')
-        : dotenv.env['FIREBASE_WEB_MESSAGING_SENDER_ID'] ?? '88069763481';
+  static String get firebaseWebApiKey => kIsWeb
+      ? const String.fromEnvironment('FIREBASE_WEB_API_KEY',
+          defaultValue: 'AIzaSyD13p6Ff7pygplneL9tRNAbLr_ASwo0H-I')
+      : dotenv.env['FIREBASE_WEB_API_KEY'] ?? '';
+
+  static String get firebaseWebAppId => kIsWeb
+      ? const String.fromEnvironment('FIREBASE_WEB_APP_ID',
+          defaultValue: '1:88069763481:web:d7c2e6b73aa1124a22a308')
+      : dotenv.env['FIREBASE_WEB_APP_ID'] ?? '';
+
+  static String get firebaseWebMessagingSenderId => kIsWeb
+      ? const String.fromEnvironment('FIREBASE_WEB_MESSAGING_SENDER_ID',
+          defaultValue: '88069763481')
+      : dotenv.env['FIREBASE_WEB_MESSAGING_SENDER_ID'] ?? '88069763481';
   static String get firebaseWebMeasurementId =>
       dotenv.env['FIREBASE_WEB_MEASUREMENT_ID'] ?? 'G-MEASUREMENT_ID';
 
@@ -97,25 +99,25 @@ class ConfigService {
   // ☁️  CLOUDINARY CONFIGURATION
   // ========================================
 
-  static String get cloudinaryCloudName =>
-      kIsWeb
-        ? const String.fromEnvironment('CLOUDINARY_CLOUD_NAME', defaultValue: 'dugh2jryo')
-        : dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
-        
-  static String get cloudinaryUploadPreset =>
-      kIsWeb
-        ? const String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET', defaultValue: 'patra_dating_app')
-        : dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
-        
-  static String get cloudinaryApiKey => 
-      kIsWeb
-        ? const String.fromEnvironment('CLOUDINARY_API_KEY', defaultValue: '893895154948756')
-        : dotenv.env['CLOUDINARY_API_KEY'] ?? '';
-        
-  static String get cloudinaryApiSecret =>
-      kIsWeb
-        ? const String.fromEnvironment('CLOUDINARY_API_SECRET', defaultValue: 'YeHOnCzBdSXjc_lXn8tOYoGIH-k')
-        : dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
+  static String get cloudinaryCloudName => kIsWeb
+      ? const String.fromEnvironment('CLOUDINARY_CLOUD_NAME',
+          defaultValue: 'dugh2jryo')
+      : dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? '';
+
+  static String get cloudinaryUploadPreset => kIsWeb
+      ? const String.fromEnvironment('CLOUDINARY_UPLOAD_PRESET',
+          defaultValue: 'patra_dating_app')
+      : dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? '';
+
+  static String get cloudinaryApiKey => kIsWeb
+      ? const String.fromEnvironment('CLOUDINARY_API_KEY',
+          defaultValue: '893895154948756')
+      : dotenv.env['CLOUDINARY_API_KEY'] ?? '';
+
+  static String get cloudinaryApiSecret => kIsWeb
+      ? const String.fromEnvironment('CLOUDINARY_API_SECRET',
+          defaultValue: 'YeHOnCzBdSXjc_lXn8tOYoGIH-k')
+      : dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
 
   // ========================================
   // 🤖 ML SERVICE CONFIGURATION
@@ -150,10 +152,9 @@ class ConfigService {
   // 🏗️  DEVELOPMENT ENVIRONMENT
   // ========================================
 
-  static String get environment => 
-      kIsWeb
-        ? const String.fromEnvironment('ENVIRONMENT', defaultValue: 'production')
-        : dotenv.env['ENVIRONMENT'] ?? 'development';
+  static String get environment => kIsWeb
+      ? const String.fromEnvironment('ENVIRONMENT', defaultValue: 'production')
+      : dotenv.env['ENVIRONMENT'] ?? 'development';
   static bool get debugMode =>
       dotenv.env['DEBUG_MODE']?.toLowerCase() == 'true';
   static bool get verboseLogging =>
