@@ -10,50 +10,9 @@ from flask_cors import CORS
 import os
 
 # -------------------- FIREBASE CONFIG --------------------
-# Initialize Firebase Admin SDK for production deployment
-import json
-
-def initialize_firebase():
-    """Initialize Firebase Admin SDK for production deployment"""
-    try:
-        # Try to get Firebase credentials from environment variable (for Render/production)
-        firebase_config = os.environ.get('FIREBASE_SERVICE_ACCOUNT')
-        if firebase_config:
-            try:
-                # Try to parse JSON from environment variable
-                cred_dict = json.loads(firebase_config)
-                # Ensure all required fields are present
-                required_fields = ['type', 'project_id', 'private_key_id', 'private_key', 
-                                 'client_email', 'client_id', 'auth_uri', 'token_uri']
-                if all(field in cred_dict for field in required_fields):
-                    # Ensure private_key is properly formatted
-                    if not cred_dict['private_key'].startswith('-----BEGIN PRIVATE KEY-----'):
-                        cred_dict['private_key'] = f"-----BEGIN PRIVATE KEY-----\n{cred_dict['private_key']}\n-----END PRIVATE KEY-----\n"
-                    cred = credentials.Certificate(cred_dict)
-                    print("✅ Using Firebase credentials from environment variable")
-                else:
-                    raise ValueError("Missing required fields in Firebase credentials")
-            except json.JSONDecodeError:
-                print("❌ Failed to parse Firebase credentials JSON")
-                raise
-        else:
-            # Fallback to local file (for development)
-            cred = credentials.Certificate("firebase-service-account.json")
-            print("✅ Using local Firebase service account file")
-        
-        firebase_admin.initialize_app(cred)
-        print("✅ Firebase initialized successfully")
-        return True
-    except Exception as e:
-        print(f"❌ Firebase initialization failed: {e}")
-        return False
-
-# Initialize Firebase
-firebase_initialized = initialize_firebase()
-if not firebase_initialized:
-    print("❌ Cannot proceed without Firebase connection")
-    exit(1)
-
+# Initialize Firebase Admin SDK
+cred = credentials.Certificate("firebase-service-account.json")
+firebase_admin.initialize_app(cred)
 db = firestore.client()
 
 # -------------------- LOAD DATA FROM FIREBASE --------------------
@@ -590,15 +549,8 @@ if __name__ == "__main__":
         print("   GET  /health - Health check")
         print("   GET  /recommendations/<user_uid>?count=10 - Get recommendations")
         print("   POST /refresh-data - Refresh data from Firebase")
-        
-        # Get port from environment variable for Render deployment
-        port = int(os.environ.get('PORT', 5000))
-        print(f"\n🚀 Server starting on port {port}")
-        
-        # Configure CORS
-        CORS(app)
-        # Run the Flask app with production settings
-        app.run(host='0.0.0.0', port=port, debug=False)
+        print("\n🚀 Server starting on http://localhost:5000")
+        app.run(host='0.0.0.0', port=5000, debug=True)
     else:
         # Test mode
         print(f"�👥 Available users: {list(users['username'].head(10))}")

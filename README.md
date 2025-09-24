@@ -7,7 +7,7 @@
 ![Python](https://img.shields.io/badge/python-3670A0?style=for-the-badge&logo=python&logoColor=ffdd54)
 ![Dart](https://img.shields.io/badge/dart-%230175C2.svg?style=for-the-badge&logo=dart&logoColor=white)
 
-**A Modern Dating App with AI-Powered Matching**
+**A Modern Community Making App with AI-Powered Matching**
 
 [🌐 Live Demo](https://patra1-0.vercel.app) 
 

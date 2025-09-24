@@ -37,7 +37,7 @@ class _ConfigVerificationWidgetState extends State<ConfigVerificationWidget> {
         'general': _checkGeneralConfig(),
         'firebase': _checkFirebaseConfig(),
         'cloudinary': _checkCloudinaryConfig(),
-        'ml_service': _checkMLServiceConfig(),
+        // 'ml_service': _checkMLServiceConfig(), // DISABLED ML SERVICE
         'features': _checkFeatureFlags(),
         'security': _checkSecurityConfig(),
       };
@@ -79,13 +79,14 @@ class _ConfigVerificationWidgetState extends State<ConfigVerificationWidget> {
     };
   }
 
-  Map<String, bool> _checkMLServiceConfig() {
-    return {
-      'Service URL': ConfigService.mlServiceBaseUrl.isNotEmpty,
-      'ML Enabled': ConfigService.mlMatchingEnabled,
-      'API Timeout': ConfigService.apiTimeoutMs > 0,
-    };
-  }
+  // DISABLED ML SERVICE CONFIGURATION CHECK
+  // Map<String, bool> _checkMLServiceConfig() {
+  //   return {
+  //     'Service URL': ConfigService.mlServiceBaseUrl.isNotEmpty,
+  //     'ML Enabled': ConfigService.mlMatchingEnabled,
+  //     'API Timeout': ConfigService.apiTimeoutMs > 0,
+  //   };
+  // }
 
   Map<String, bool> _checkFeatureFlags() {
     return {
@@ -297,8 +298,8 @@ class _ConfigVerificationWidgetState extends State<ConfigVerificationWidget> {
         return '🔥 Firebase Configuration';
       case 'cloudinary':
         return '☁️ Cloudinary Settings';
-      case 'ml_service':
-        return '🤖 ML Service Configuration';
+      // case 'ml_service':
+      //   return '🤖 ML Service Configuration'; // DISABLED ML SERVICE
       case 'features':
         return '🎯 Feature Flags';
       case 'security':

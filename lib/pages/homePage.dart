@@ -17,7 +17,8 @@ class _HomePageState extends State<HomePage> {
   List<UserModel.User> users = [];
   bool isLoading = true;
   String? error;
-  bool useMLMatching = true; // Toggle for ML-powered matching
+  // bool useMLMatching = true; // DISABLED ML SERVICE - Toggle for ML-powered matching
+  bool useMLMatching = false; // ML SERVICE DISABLED
   final CardSwiperController controller = CardSwiperController();
 
   @override
@@ -33,10 +34,12 @@ class _HomePageState extends State<HomePage> {
         error = null;
       });
 
-      // Use ML-powered matching or standard matching
-      final List<Map<String, dynamic>> usersData = useMLMatching
-          ? await _cloudinaryService.getMLPoweredMatches(count: 20)
-          : await _cloudinaryService.getUsersForMatching();
+      // DISABLED ML SERVICE - Use standard matching only
+      // final List<Map<String, dynamic>> usersData = useMLMatching
+      //     ? await _cloudinaryService.getMLPoweredMatches(count: 20)
+      //     : await _cloudinaryService.getUsersForMatching();
+      final List<Map<String, dynamic>> usersData = 
+          await _cloudinaryService.getUsersForMatching();
 
       List<UserModel.User> loadedUsers = [];
 
@@ -151,31 +154,31 @@ class _HomePageState extends State<HomePage> {
         ),
         centerTitle: true,
         actions: [
-          // ML Toggle button
-          IconButton(
-            icon: Icon(
-              useMLMatching ? Icons.psychology : Icons.people,
-              color: useMLMatching
-                  ? Colors.purple
-                  : Color.fromARGB(255, 134, 166, 226),
-            ),
-            onPressed: () {
-              setState(() {
-                useMLMatching = !useMLMatching;
-              });
-              _refreshUsers();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(useMLMatching
-                      ? '🤖 ML-Powered Matching Enabled'
-                      : '👥 Standard Matching Enabled'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
-            },
-            tooltip:
-                useMLMatching ? 'Using ML matching' : 'Using standard matching',
-          ),
+          // ML Toggle button - DISABLED
+          // IconButton(
+          //   icon: Icon(
+          //     useMLMatching ? Icons.psychology : Icons.people,
+          //     color: useMLMatching
+          //         ? Colors.purple
+          //         : Color.fromARGB(255, 134, 166, 226),
+          //   ),
+          //   onPressed: () {
+          //     setState(() {
+          //       useMLMatching = !useMLMatching;
+          //     });
+          //     _refreshUsers();
+          //     ScaffoldMessenger.of(context).showSnackBar(
+          //       SnackBar(
+          //         content: Text(useMLMatching
+          //             ? '🤖 ML-Powered Matching Enabled'
+          //             : '👥 Standard Matching Enabled'),
+          //         duration: Duration(seconds: 2),
+          //       ),
+          //     );
+          //   },
+          //   tooltip:
+          //       useMLMatching ? 'Using ML matching' : 'Using standard matching',
+          // ),
           // Refresh button
           IconButton(
             icon:
@@ -210,9 +213,10 @@ class _HomePageState extends State<HomePage> {
             CircularProgressIndicator(color: Colors.pink.shade700),
             SizedBox(height: 16),
             Text(
-              useMLMatching
-                  ? 'Finding your perfect matches with AI...'
-                  : 'Finding amazing people...',
+              // useMLMatching
+              //     ? 'Finding your perfect matches with AI...'
+              //     : 'Finding amazing people...',
+              'Finding amazing people...', // ML SERVICE DISABLED
               style: TextStyle(
                 color: Colors.pink.shade700,
                 fontSize: 16,
@@ -221,9 +225,10 @@ class _HomePageState extends State<HomePage> {
             ),
             SizedBox(height: 8),
             Text(
-              useMLMatching
-                  ? '🤖 AI analyzing compatibility...'
-                  : '✨ Discovering your perfect matches',
+              // useMLMatching
+              //     ? '🤖 AI analyzing compatibility...'
+              //     : '✨ Discovering your perfect matches',
+              '✨ Discovering your perfect matches', // ML SERVICE DISABLED
               style: TextStyle(
                 color: Colors.pink.shade400,
                 fontSize: 12,

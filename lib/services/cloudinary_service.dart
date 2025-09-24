@@ -5,7 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'ml_matching_service.dart';
+// import 'ml_matching_service.dart'; // DISABLED ML SERVICE
 
 class CloudinaryService {
   // Replace with your Cloudinary credentials
@@ -16,7 +16,7 @@ class CloudinaryService {
       CloudinaryPublic(_cloudName, _uploadPreset);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final MLMatchingService _mlService = MLMatchingService();
+  // final MLMatchingService _mlService = MLMatchingService(); // DISABLED ML SERVICE
 
   // Upload a single image to Cloudinary from XFile (web compatible)
   Future<String?> uploadImageFromXFile(XFile imageFile) async {
@@ -212,60 +212,60 @@ class CloudinaryService {
     }
   }
 
-  // Get ML-powered intelligent matches (NEW: Uses machine learning algorithm)
-  Future<List<Map<String, dynamic>>> getMLPoweredMatches(
-      {int count = 10}) async {
-    try {
-      print('🤖 Fetching ML-powered recommendations...');
+  // DISABLED ML SERVICE - Get ML-powered intelligent matches 
+  // Future<List<Map<String, dynamic>>> getMLPoweredMatches(
+  //     {int count = 10}) async {
+  //   try {
+  //     print('🤖 Fetching ML-powered recommendations...');
 
-      // Check if ML service is available
-      final isMLAvailable = await _mlService.isMLServiceAvailable();
-      if (!isMLAvailable) {
-        print('⚠️ ML service unavailable, falling back to standard matching');
-        return getUsersForMatching();
-      }
+  //     // Check if ML service is available
+  //     final isMLAvailable = await _mlService.isMLServiceAvailable();
+  //     if (!isMLAvailable) {
+  //       print('⚠️ ML service unavailable, falling back to standard matching');
+  //       return getUsersForMatching();
+  //     }
 
-      // Get ML recommendations
-      final mlRecommendations =
-          await _mlService.getMLRecommendations(count: count);
+  //     // Get ML recommendations
+  //     final mlRecommendations =
+  //         await _mlService.getMLRecommendations(count: count);
 
-      if (mlRecommendations.isEmpty) {
-        print('⚠️ No ML recommendations, falling back to standard matching');
-        return getUsersForMatching();
-      }
+  //     if (mlRecommendations.isEmpty) {
+  //       print('⚠️ No ML recommendations, falling back to standard matching');
+  //       return getUsersForMatching();
+  //     }
 
-      // Convert ML recommendations to the expected format
-      List<Map<String, dynamic>> mlUsers = [];
-      for (var recommendation in mlRecommendations) {
-        // Get full user data from Firestore to ensure we have all fields
-        try {
-          final userDoc = await _firestore
-              .collection('users')
-              .doc(recommendation['uid'])
-              .get();
+  //     // Convert ML recommendations to the expected format
+  //     List<Map<String, dynamic>> mlUsers = [];
+  //     for (var recommendation in mlRecommendations) {
+  //       // Get full user data from Firestore to ensure we have all fields
+  //       try {
+  //         final userDoc = await _firestore
+  //             .collection('users')
+  //             .doc(recommendation['uid'])
+  //             .get();
 
-          if (userDoc.exists) {
-            final userData = userDoc.data() as Map<String, dynamic>;
-            // Add ML score to user data
-            userData['mlScore'] = recommendation['match_score'];
-            userData['isMLRecommendation'] = true;
-            mlUsers.add(userData);
-          }
-        } catch (e) {
-          print(
-              'Warning: Could not fetch user data for ${recommendation['uid']}: $e');
-        }
-      }
+  //         if (userDoc.exists) {
+  //           final userData = userDoc.data() as Map<String, dynamic>;
+  //           // Add ML score to user data
+  //           userData['mlScore'] = recommendation['match_score'];
+  //           userData['isMLRecommendation'] = true;
+  //           mlUsers.add(userData);
+  //         }
+  //       } catch (e) {
+  //         print(
+  //             'Warning: Could not fetch user data for ${recommendation['uid']}: $e');
+  //       }
+  //     }
 
-      print(
-          '🎯 ML recommendations loaded: ${mlUsers.length} intelligent matches');
-      return mlUsers;
-    } catch (e) {
-      print('❌ Error getting ML-powered matches: $e');
-      print('⚠️ Falling back to standard matching');
-      return getUsersForMatching();
-    }
-  }
+  //     print(
+  //         '🎯 ML recommendations loaded: ${mlUsers.length} intelligent matches');
+  //     return mlUsers;
+  //   } catch (e) {
+  //     print('❌ Error getting ML-powered matches: $e');
+  //     print('⚠️ Falling back to standard matching');
+  //     return getUsersForMatching();
+  //   }
+  // }
 
   // Original method kept for compatibility (now deprecated)
   @deprecated

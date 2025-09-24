@@ -170,8 +170,9 @@ class ConfigService {
   static String get buildNumber => dotenv.env['BUILD_NUMBER'] ?? '1';
 
   // Feature Flags
-  static bool get mlMatchingEnabled =>
-      dotenv.env['ML_MATCHING_ENABLED']?.toLowerCase() != 'false';
+  static bool get mlMatchingEnabled => kIsWeb
+      ? const bool.fromEnvironment('ML_MATCHING_ENABLED', defaultValue: false) // DISABLED ML SERVICE
+      : dotenv.env['ML_MATCHING_ENABLED']?.toLowerCase() != 'false';
   static bool get premiumFeaturesEnabled =>
       dotenv.env['PREMIUM_FEATURES_ENABLED']?.toLowerCase() == 'true';
   static bool get chatEnabled =>
@@ -263,23 +264,28 @@ class ConfigService {
 
   /// Validate configuration and print warnings
   static void validateConfiguration() {
-    final missing = getMissingRequiredVariables();
-    if (missing.isNotEmpty) {
-      print('⚠️  Warning: Missing required environment variables:');
-      for (String variable in missing) {
-        print('   - $variable');
+    try {
+      final missing = getMissingRequiredVariables();
+      if (missing.isNotEmpty) {
+        print('⚠️  Warning: Missing required environment variables:');
+        for (String variable in missing) {
+          print('   - $variable');
+        }
+        print('   Please check your .env and api_keys.env files');
       }
-      print('   Please check your .env and api_keys.env files');
-    }
 
-    if (debugMode && isProduction) {
-      print('⚠️  Warning: Debug mode is enabled in production environment!');
-    }
+      if (debugMode && isProduction) {
+        print('⚠️  Warning: Debug mode is enabled in production environment!');
+      }
 
-    print('🔧 Environment: $environment');
-    print('🤖 ML Matching: ${mlMatchingEnabled ? 'Enabled' : 'Disabled'}');
-    print('🔍 Debug Mode: ${debugMode ? 'Enabled' : 'Disabled'}');
-    print('☁️  Cloudinary: $cloudinaryCloudName');
-    print('🔥 Firebase Project: $firebaseProjectId');
+      print('🔧 Environment: $environment');
+      print('🤖 ML Matching: ${mlMatchingEnabled ? 'Enabled' : 'Disabled'}');
+      print('🔍 Debug Mode: ${debugMode ? 'Enabled' : 'Disabled'}');
+      print('☁️  Cloudinary: $cloudinaryCloudName');
+      print('🔥 Firebase Project: $firebaseProjectId');
+    } catch (e) {
+      print('⚠️  Warning in configuration validation: $e');
+      // Don't throw, just warn
+    }
   }
 }
