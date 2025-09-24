@@ -1,0 +1,20 @@
+{
+  "github": {
+    "silent": true
+  },
+  "buildCommand": "flutter build web --release --base-href /",
+  "outputDirectory": "build/web",
+  "installCommand": "if which flutter > /dev/null; then flutter pub get; else echo 'Flutter not found, assuming pre-built'; fi",
+  "routes": [
+    {
+      "src": "/(.*\\.(js|css|html|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot))",
+      "headers": {
+        "cache-control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

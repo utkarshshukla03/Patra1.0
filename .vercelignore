@@ -1,0 +1,29 @@
+# Flutter
+.dart_tool/
+.packages
+.pub/
+build/
+!build/web
+.flutter-plugins*
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Others
+*.log
+*.tmp
+*.temp
+
+# ML Backend (not needed for web deployment)
+ml_backend/
+scripts/
+
+# Environment files (for security)
+.env
+api_keys.env
