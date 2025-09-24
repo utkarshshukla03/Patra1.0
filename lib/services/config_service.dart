@@ -254,10 +254,18 @@ class ConfigService {
   static List<String> getMissingRequiredVariables() {
     List<String> missing = [];
 
-    if (cloudinaryCloudName.isEmpty) missing.add('CLOUDINARY_CLOUD_NAME');
-    if (cloudinaryUploadPreset.isEmpty) missing.add('CLOUDINARY_UPLOAD_PRESET');
-    if (firebaseProjectId.isEmpty) missing.add('FIREBASE_PROJECT_ID');
-    if (firebaseWebApiKey.isEmpty) missing.add('FIREBASE_WEB_API_KEY');
+    // More lenient validation for web platform
+    if (kIsWeb) {
+      // On web, only check critical Firebase config
+      if (firebaseProjectId.isEmpty) missing.add('FIREBASE_PROJECT_ID');
+      if (firebaseWebApiKey.isEmpty) missing.add('FIREBASE_WEB_API_KEY');
+    } else {
+      // Full validation for mobile platforms
+      if (cloudinaryCloudName.isEmpty) missing.add('CLOUDINARY_CLOUD_NAME');
+      if (cloudinaryUploadPreset.isEmpty) missing.add('CLOUDINARY_UPLOAD_PRESET');
+      if (firebaseProjectId.isEmpty) missing.add('FIREBASE_PROJECT_ID');
+      if (firebaseWebApiKey.isEmpty) missing.add('FIREBASE_WEB_API_KEY');
+    }
 
     return missing;
   }
