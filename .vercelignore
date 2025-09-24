@@ -1,10 +1,18 @@
-# Flutter
+# Flutter source (keep build artifacts in root)
 .dart_tool/
 .packages
 .pub/
+lib/
+test/
+web/
+android/
+ios/
+linux/
+macos/
+windows/
+
+# Flutter build (except root files)
 build/
-!build/web
-.flutter-plugins*
 
 # IDE
 .vscode/
@@ -22,8 +30,13 @@ Thumbs.db
 
 # ML Backend (not needed for web deployment)
 ml_backend/
-scripts/
 
-# Environment files (for security)
-.env
-api_keys.env
+# Keep these files in root for Vercel deployment
+!index.html
+!*.js
+!*.json
+!*.png
+!*.ico
+!assets/
+!canvaskit/
+!icons/
