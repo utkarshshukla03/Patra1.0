@@ -1,37 +1,70 @@
-# Environment files (sensitive)# Flutter source (keep build artifacts in root)
+# Source code (Vercel will build from these)# Environment files (sensitive)# Flutter source (keep build artifacts in root)
 
-.env.dart_tool/
+lib/
 
-api_keys.env.packages
+android/.env.dart_tool/
 
-.env.example.pub/
+ios/
 
-api_keys.env.examplelib/
+linux/api_keys.env.packages
+
+macos/
+
+windows/.env.example.pub/
 
 test/
 
-# Build artifacts that shouldn't be served directlyweb/
+web/api_keys.env.examplelib/
 
-build/android/
 
-.dart_tool/ios/
 
-.flutter-pluginslinux/
-
-.flutter-plugins-dependenciesmacos/
-
-.metadatawindows/
-
-.packages
-
-# Flutter build (except root files)
-
-# Development filesbuild/
+# Development filestest/
 
 .vscode/
 
-.idea/# IDE
+.idea/# Build artifacts that shouldn't be served directlyweb/
 
+*.iml
+
+analysis_options.yamlbuild/android/
+
+.dart_tool/
+
+.flutter-plugins.dart_tool/ios/
+
+.flutter-plugins-dependencies
+
+.metadata.flutter-pluginslinux/
+
+.packages
+
+.flutter-plugins-dependenciesmacos/
+
+# Configuration files (these will be in build/web/assets)
+
+firestore.rules.metadatawindows/
+
+firestore_production.rules
+
+firestore_rules.rules.packages
+
+storage.rules
+
+# Flutter build (except root files)
+
+# Scripts and backend
+
+ml_backend/# Development filesbuild/
+
+*.bat
+
+.vscode/
+
+# Documentation
+
+README.md.idea/# IDE
+
+LICENSE
 *.iml.vscode/
 
 .idea/

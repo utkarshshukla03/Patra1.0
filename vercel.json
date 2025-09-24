@@ -1,8 +1,12 @@
 {
-  "rewrites": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "/(.*\\.(js|css|html|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json|wasm|frag|otf|bin))",
+      "dest": "/build/web/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/build/web/index.html"
     }
   ]
 }
