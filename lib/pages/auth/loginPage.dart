@@ -87,11 +87,29 @@ class _LoginPageState extends State<LoginPage> {
                 height: 200,
                 child: Image.asset(
                   'assets/Talk.webp',
+                  fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
-                    return Icon(
-                      Icons.image_not_supported,
-                      size: 100,
-                      color: Colors.grey,
+                    print('Asset loading error: $error');
+                    return Container(
+                      height: 200,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.favorite,
+                            size: 80,
+                            color: Colors.pink,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Patra Dating',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
                     );
                   },
                 ),

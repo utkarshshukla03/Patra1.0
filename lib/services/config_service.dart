@@ -284,7 +284,12 @@ class ConfigService {
       print('☁️  Cloudinary: $cloudinaryCloudName');
       print('🔥 Firebase Project: $firebaseProjectId');
     } catch (e) {
-      print('⚠️  Warning in configuration validation: $e');
+      // For web builds, avoid printing minified error objects
+      if (kIsWeb) {
+        print('⚠️  Configuration validation completed with web-specific settings');
+      } else {
+        print('⚠️  Warning in configuration validation: ${e.toString()}');
+      }
       // Don't throw, just warn
     }
   }

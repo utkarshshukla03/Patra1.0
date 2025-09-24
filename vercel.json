@@ -1,0 +1,46 @@
+{{{{
+
+  "functions": {},
+
+  "routes": [  "functions": {},
+
+    {
+
+      "src": "/(.*\\.(js|css|html|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json|wasm|frag|otf|bin))",  "routes": [  "functions": {},  "routes": [
+
+      "headers": {
+
+        "cache-control": "public, max-age=31536000, immutable"    { "handle": "filesystem" },
+
+      }
+
+    },    { "src": "/(.*)", "dest": "/index.html" }  "routes": [    {
+
+    { 
+
+      "handle": "filesystem"   ],
+
+    },
+
+    {   "public": true    { "handle": "filesystem" },      "src": "/(.*\\.(js|css|html|ico|png|jpg|jpeg|gif|svg|woff|woff2|ttf|eot|json|wasm|frag))",
+
+      "src": "/(.*)", 
+
+      "dest": "/index.html" }
+
+    }    { "src": "/(.*)", "dest": "/index.html" }      "headers": {
+
+  ],
+
+  "public": true  ],        "cache-control": "public, max-age=31536000, immutable"
+
+}
+  "public": true      }
+
+}    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}
