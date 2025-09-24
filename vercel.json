@@ -1,5 +1,4 @@
 {
-  "functions": {},
   "routes": [
     {
       "src": "/(.*\\.(js|css|html|ico|png|jpg|jpeg|gif|svg|webp|woff|woff2|ttf|eot|json|wasm|frag|otf|bin))",
