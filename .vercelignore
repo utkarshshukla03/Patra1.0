@@ -1,0 +1,78 @@
+# Environment files (sensitive)# Flutter source (keep build artifacts in root)
+
+.env.dart_tool/
+
+api_keys.env.packages
+
+.env.example.pub/
+
+api_keys.env.examplelib/
+
+test/
+
+# Build artifacts that shouldn't be served directlyweb/
+
+build/android/
+
+.dart_tool/ios/
+
+.flutter-pluginslinux/
+
+.flutter-plugins-dependenciesmacos/
+
+.metadatawindows/
+
+.packages
+
+# Flutter build (except root files)
+
+# Development filesbuild/
+
+.vscode/
+
+.idea/# IDE
+
+*.iml.vscode/
+
+.idea/
+
+# Firebase config (backend only)*.iml
+
+.firebaserc
+
+firebase.json# OS
+
+firestore.rules.DS_Store
+
+firestore_production.rulesThumbs.db
+
+firestore_rules.rules
+
+storage.rules# Others
+
+*.log
+
+# ML Backend (not needed for web)*.tmp
+
+ml_backend/*.temp
+
+*.bat
+
+# ML Backend (not needed for web deployment)
+
+# Gitml_backend/
+
+.git/
+
+# Keep these files in root for Vercel deployment
+
+# License and docs (optional)!index.html
+
+LICENSE!*.js
+
+README.md!*.json
+!*.png
+!*.ico
+!assets/
+!canvaskit/
+!icons/
