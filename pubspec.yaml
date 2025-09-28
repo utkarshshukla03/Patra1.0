@@ -38,10 +38,14 @@ dependencies:
     sdk: flutter
   flutter_card_swiper: ^7.0.2
   flutter_dotenv: ^6.0.0
+  google_maps_flutter: ^2.7.0
+  location: ^7.0.0
+  geolocator: ^13.0.1
   http: ^1.1.0
   image_picker: ^1.2.0
   reorderables: ^0.6.0
   uuid: ^4.5.1
+  lottie: ^3.3.1
 
 dev_dependencies:
   flutter_lints: ^5.0.0
@@ -60,6 +64,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/Talk.webp
+    - assets/animations/
     - .env
     - api_keys.env
   #   - images/a_dot_ham.jpeg

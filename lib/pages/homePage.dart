@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:lottie/lottie.dart';
 import 'package:patra_initial/pages/services/chat.dart';
 import '../models/user.dart' as UserModel;
 import '../services/cloudinary_service.dart';
+import '../pages/profile_modal.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -38,7 +40,7 @@ class _HomePageState extends State<HomePage> {
       // final List<Map<String, dynamic>> usersData = useMLMatching
       //     ? await _cloudinaryService.getMLPoweredMatches(count: 20)
       //     : await _cloudinaryService.getUsersForMatching();
-      final List<Map<String, dynamic>> usersData = 
+      final List<Map<String, dynamic>> usersData =
           await _cloudinaryService.getUsersForMatching();
 
       List<UserModel.User> loadedUsers = [];
@@ -146,10 +148,10 @@ class _HomePageState extends State<HomePage> {
         title: Text(
           'Patra',
           style: TextStyle(
-            color: const Color.fromARGB(255, 134, 166, 226),
+            color: const Color.fromARGB(255, 13, 13, 13),
             fontWeight: FontWeight.bold,
-            fontStyle: FontStyle.italic,
-            fontSize: 24,
+            // fontStyle: FontStyle.italic,
+            fontSize: 36,
           ),
         ),
         centerTitle: true,
@@ -210,7 +212,12 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CircularProgressIndicator(color: Colors.pink.shade700),
+            Lottie.asset(
+              'assets/animations/Search.json',
+              width: 150,
+              height: 150,
+              fit: BoxFit.cover,
+            ),
             SizedBox(height: 16),
             Text(
               // useMLMatching
@@ -344,6 +351,15 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  void _showUserProfile(UserModel.User user) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => ProfileModal(user: user),
+    );
+  }
+
   Widget _buildUserCard(UserModel.User user, int swipeThreshold) {
     double swipeProgress = swipeThreshold / 100.0; // Convert to progress value
     return Card(
@@ -351,151 +367,185 @@ class _HomePageState extends State<HomePage> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // Background image
-            Container(
-              width: double.infinity,
-              height: double.infinity,
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                  image: NetworkImage(user.primaryPhotoUrl.isNotEmpty
-                      ? user.primaryPhotoUrl
-                      : 'https://via.placeholder.com/400x600?text=No+Image'),
-                  fit: BoxFit.cover,
-                ),
-              ),
-            ),
-
-            // Swipe indicator overlay
-            if (swipeProgress.abs() > 0.1)
+        child: GestureDetector(
+          onTap: () => _showUserProfile(user),
+          child: Stack(
+            children: [
+              // Background image
               Container(
                 width: double.infinity,
                 height: double.infinity,
-                color: swipeProgress > 0
-                    ? Colors.green.withOpacity(0.3)
-                    : Colors.red.withOpacity(0.3),
-                child: Center(
-                  child: Icon(
-                    swipeProgress > 0 ? Icons.favorite : Icons.close,
-                    size: 100,
-                    color: Colors.white,
+                decoration: BoxDecoration(
+                  image: DecorationImage(
+                    image: NetworkImage(user.primaryPhotoUrl.isNotEmpty
+                        ? user.primaryPhotoUrl
+                        : 'https://via.placeholder.com/400x600?text=No+Image'),
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),
 
-            // Gradient overlay for text readability
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: Container(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      Colors.black.withOpacity(0.8),
-                      Colors.transparent,
-                    ],
-                    begin: Alignment.bottomCenter,
-                    end: Alignment.topCenter,
+              // Swipe indicator overlay
+              if (swipeProgress.abs() > 0.1)
+                Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: swipeProgress > 0
+                      ? Colors.green.withOpacity(0.3)
+                      : Colors.red.withOpacity(0.3),
+                  child: Center(
+                    child: Icon(
+                      swipeProgress > 0 ? Icons.favorite : Icons.close,
+                      size: 100,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
-                padding: EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Name and age
-                    Text(
-                      '${user.username}, ${user.calculatedAge}',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                      ),
+
+              // Profile info button - positioned at top right
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.info_outline,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ),
+              ),
+
+              // Gradient overlay for text readability
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.black.withOpacity(0.8),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.bottomCenter,
+                      end: Alignment.topCenter,
                     ),
-
-                    SizedBox(height: 8),
-
-                    // Gender and location
-                    if (user.gender != null || user.location != null)
-                      Row(
-                        children: [
-                          if (user.gender != null) ...[
-                            Icon(Icons.person, color: Colors.white, size: 18),
-                            SizedBox(width: 4),
-                            Text(
-                              user.gender!,
-                              style:
-                                  TextStyle(color: Colors.white, fontSize: 16),
-                            ),
-                          ],
-                          if (user.gender != null && user.location != null)
-                            SizedBox(width: 16),
-                          if (user.location != null) ...[
-                            Icon(Icons.location_on,
-                                color: Colors.white, size: 18),
-                            SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                user.location!,
-                                style: TextStyle(
-                                    color: Colors.white, fontSize: 16),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-
-                    // Bio
-                    if (user.bio != null && user.bio!.isNotEmpty) ...[
-                      SizedBox(height: 8),
+                  ),
+                  padding: EdgeInsets.all(20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Name and age
                       Text(
-                        user.bio!,
+                        '${user.username}, ${user.calculatedAge}',
                         style: TextStyle(
                           color: Colors.white,
-                          fontSize: 14,
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
                         ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
 
-                    // Interests
-                    if (user.interests != null &&
-                        user.interests!.isNotEmpty) ...[
-                      SizedBox(height: 12),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: user.interests!.take(3).map((interest) {
-                          return Container(
-                            padding: EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: Colors.white.withOpacity(0.2),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                  color: Colors.white.withOpacity(0.3)),
-                            ),
-                            child: Text(
-                              interest,
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
+                      SizedBox(height: 8),
+
+                      // Gender and location
+                      if (user.gender != null || user.location != null)
+                        Row(
+                          children: [
+                            if (user.gender != null) ...[
+                              Icon(Icons.person, color: Colors.white, size: 18),
+                              SizedBox(width: 4),
+                              Text(
+                                user.gender!,
+                                style: TextStyle(
+                                    color: Colors.white, fontSize: 16),
                               ),
-                            ),
-                          );
-                        }).toList(),
+                            ],
+                            if (user.gender != null && user.location != null)
+                              SizedBox(width: 16),
+                            if (user.location != null) ...[
+                              Icon(Icons.location_on,
+                                  color: Colors.white, size: 18),
+                              SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  user.location!,
+                                  style: TextStyle(
+                                      color: Colors.white, fontSize: 16),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+
+                      // Bio
+                      if (user.bio != null && user.bio!.isNotEmpty) ...[
+                        SizedBox(height: 8),
+                        Text(
+                          user.bio!,
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+
+                      // Interests
+                      if (user.interests != null &&
+                          user.interests!.isNotEmpty) ...[
+                        SizedBox(height: 12),
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: user.interests!.take(3).map((interest) {
+                            return Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                    color: Colors.white.withOpacity(0.3)),
+                              ),
+                              child: Text(
+                                interest,
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ],
+
+                      // Tap hint
+                      SizedBox(height: 12),
+                      Center(
+                        child: Text(
+                          'Tap to view full profile',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
