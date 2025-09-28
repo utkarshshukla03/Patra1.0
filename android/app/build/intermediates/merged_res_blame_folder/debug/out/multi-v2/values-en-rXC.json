@@ -1,10 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.patra_initial.app-mergeDebugResources-39:/values-en-rXC/values-en-rXC.xml",
+            "outputFile": "com.example.patra_initial.app-mergeDebugResources-45:/values-en-rXC/values-en-rXC.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\6e20a897408cb2d4653539385bba0920\\transformed\\core-1.13.1\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\51863edc8ae7922c591ec024bc0a0b7b\\transformed\\core-1.13.1\\res\\values-en-rXC\\values-en-rXC.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -21,7 +21,17 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\9b03c45ae326d756401efb5b883dd6fb\\transformed\\browser-1.4.0\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\9b22ea8a079f4ca53199ee34d9f5ea46\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-en-rXC\\values-en-rXC.xml",
+                    "from": {
+                        "startLines": "2,3",
+                        "startColumns": "4,4",
+                        "startOffsets": "55,270",
+                        "endColumns": "214,215",
+                        "endOffsets": "265,481"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\50c24b928f7d27be748b650d29aab759\\transformed\\browser-1.4.0\\res\\values-en-rXC\\values-en-rXC.xml",
                     "from": {
                         "startLines": "2,3,4,5",
                         "startColumns": "4,4,4,4",
@@ -35,16 +45,6 @@
                         "startOffsets": "1913,2113,2312,2523",
                         "endColumns": "199,198,210,201",
                         "endOffsets": "2108,2307,2518,2720"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\b2472c24daaf2197e7067047b5c24d3a\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-en-rXC\\values-en-rXC.xml",
-                    "from": {
-                        "startLines": "2,3",
-                        "startColumns": "4,4",
-                        "startOffsets": "55,270",
-                        "endColumns": "214,215",
-                        "endOffsets": "265,481"
                     }
                 }
             ]

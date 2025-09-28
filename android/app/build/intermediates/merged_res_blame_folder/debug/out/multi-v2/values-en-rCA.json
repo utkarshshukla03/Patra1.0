@@ -1,27 +1,10 @@
 {
     "logs": [
         {
-            "outputFile": "com.example.patra_initial.app-mergeDebugResources-39:/values-en-rCA/values-en-rCA.xml",
+            "outputFile": "com.example.patra_initial.app-mergeDebugResources-45:/values-en-rCA/values-en-rCA.xml",
             "map": [
                 {
-                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\9b03c45ae326d756401efb5b883dd6fb\\transformed\\browser-1.4.0\\res\\values-en-rCA\\values-en-rCA.xml",
-                    "from": {
-                        "startLines": "2,3,4,5",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "55,153,250,359",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "148,245,354,453"
-                    },
-                    "to": {
-                        "startLines": "11,12,13,14",
-                        "startColumns": "4,4,4,4",
-                        "startOffsets": "999,1097,1194,1303",
-                        "endColumns": "97,96,108,98",
-                        "endOffsets": "1092,1189,1298,1397"
-                    }
-                },
-                {
-                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\b2472c24daaf2197e7067047b5c24d3a\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-en-rCA\\values-en-rCA.xml",
+                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\9b22ea8a079f4ca53199ee34d9f5ea46\\transformed\\jetified-credentials-1.2.0-rc01\\res\\values-en-rCA\\values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3",
                         "startColumns": "4,4",
@@ -31,7 +14,7 @@
                     }
                 },
                 {
-                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\6e20a897408cb2d4653539385bba0920\\transformed\\core-1.13.1\\res\\values-en-rCA\\values-en-rCA.xml",
+                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\51863edc8ae7922c591ec024bc0a0b7b\\transformed\\core-1.13.1\\res\\values-en-rCA\\values-en-rCA.xml",
                     "from": {
                         "startLines": "2,3,4,5,6,7,8,9",
                         "startColumns": "4,4,4,4,4,4,4,4",
@@ -45,6 +28,23 @@
                         "startOffsets": "281,377,479,578,677,781,883,1402",
                         "endColumns": "95,101,98,98,103,101,115,100",
                         "endOffsets": "372,474,573,672,776,878,994,1498"
+                    }
+                },
+                {
+                    "source": "C:\\Users\\PC\\.gradle\\caches\\transforms-3\\50c24b928f7d27be748b650d29aab759\\transformed\\browser-1.4.0\\res\\values-en-rCA\\values-en-rCA.xml",
+                    "from": {
+                        "startLines": "2,3,4,5",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "55,153,250,359",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "148,245,354,453"
+                    },
+                    "to": {
+                        "startLines": "11,12,13,14",
+                        "startColumns": "4,4,4,4",
+                        "startOffsets": "999,1097,1194,1303",
+                        "endColumns": "97,96,108,98",
+                        "endOffsets": "1092,1189,1298,1397"
                     }
                 }
             ]

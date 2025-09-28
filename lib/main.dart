@@ -15,10 +15,14 @@ void main() async {
     print('✅ Configuration loaded successfully!');
 
     // Initialize Firebase
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    print('🔥 Firebase initialized successfully!');
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      print('🔥 Firebase initialized successfully!');
+    } else {
+      print('🔥 Firebase already initialized!');
+    }
 
     // Validate configuration
     ConfigService.validateConfiguration();

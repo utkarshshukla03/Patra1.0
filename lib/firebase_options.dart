@@ -41,38 +41,37 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD13p6Ff7pygplneL9tRNAbLr_ASwo0H-I',
+    apiKey: 'AIzaSyDY0LdgaNl6FZa9_GOIPfD64TkTgTFDaFI',
     appId: '1:88069763481:web:d7c2e6b73aa1124a22a308',
     messagingSenderId: '88069763481',
     projectId: 'patra-dating-app',
     authDomain: 'patra-dating-app.firebaseapp.com',
     storageBucket: 'patra-dating-app.firebasestorage.app',
-    measurementId: 'G-MEASUREMENT_ID',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDL1F5KKwV8pZqI1CqGqZPL8vGh3MsOAeU',
-    appId: '1:123456789012:android:abcdef1234567890abcdef',
-    messagingSenderId: '123456789012',
+    apiKey: 'AIzaSyD13p6Ff7pygplneL9tRNAbLr_ASwo0H-I',
+    appId: '1:88069763481:android:7a83f3ac06078da022a308',
+    messagingSenderId: '88069763481',
     projectId: 'patra-dating-app',
-    storageBucket: 'patra-dating-app.appspot.com',
+    storageBucket: 'patra-dating-app.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyDL1F5KKwV8pZqI1CqGqZPL8vGh3MsOAeU',
-    appId: '1:123456789012:ios:abcdef1234567890abcdef',
-    messagingSenderId: '123456789012',
+    apiKey: 'AIzaSyDGKOYzk5Aq39q2I2iU7CrILI2HGEGTsFI',
+    appId: '1:88069763481:ios:3927a90e05ab103522a308',
+    messagingSenderId: '88069763481',
     projectId: 'patra-dating-app',
-    storageBucket: 'patra-dating-app.appspot.com',
+    storageBucket: 'patra-dating-app.firebasestorage.app',
     iosBundleId: 'com.example.patraInitial',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyDL1F5KKwV8pZqI1CqGqZPL8vGh3MsOAeU',
-    appId: '1:123456789012:ios:abcdef1234567890abcdef',
-    messagingSenderId: '123456789012',
+    apiKey: 'AIzaSyDGKOYzk5Aq39q2I2iU7CrILI2HGEGTsFI',
+    appId: '1:88069763481:ios:3927a90e05ab103522a308',
+    messagingSenderId: '88069763481',
     projectId: 'patra-dating-app',
-    storageBucket: 'patra-dating-app.appspot.com',
+    storageBucket: 'patra-dating-app.firebasestorage.app',
     iosBundleId: 'com.example.patraInitial',
   );
 
