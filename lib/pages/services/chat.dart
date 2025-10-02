@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/like_request.dart';
 import '../../widgets/requests_list.dart';
+import '../../services/requests_service.dart';
 
 class Chat extends StatefulWidget {
   const Chat({super.key});
@@ -13,19 +15,100 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<LikeRequest> _requests = [];
   List<Map<String, dynamic>> _matches = [];
+  bool _isLoadingRequests = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
-    _loadRequests();
-    _loadMatches();
+
+    // Listen to tab changes to refresh data when switching to requests tab
+    _tabController.addListener(() {
+      if (_tabController.indexIsChanging && _tabController.index == 0) {
+        // User switched to requests tab
+        print('🔄 User switched to requests tab, refreshing...');
+        _loadRequests();
+      }
+    });
+
+    // Load data immediately
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRequests();
+      _loadMatches();
+    });
+
+    // Refresh requests every 30 seconds to simulate real-time updates
+    _startPeriodicRefresh();
   }
 
-  void _loadRequests() {
-    setState(() {
-      _requests = LikeRequest.getMockRequests();
+  void _startPeriodicRefresh() {
+    Future.delayed(const Duration(seconds: 30), () {
+      if (mounted) {
+        _refreshRequests();
+        _startPeriodicRefresh();
+      }
     });
+  }
+
+  Future<void> _refreshRequests() async {
+    _loadRequests();
+  }
+
+  void _loadRequests() async {
+    if (_isLoadingRequests) return; // Prevent multiple simultaneous loads
+
+    setState(() {
+      _isLoadingRequests = true;
+    });
+
+    try {
+      print('🔄 Loading requests...');
+
+      // Get current user UID
+      final currentUser = FirebaseAuth.instance.currentUser;
+      final userUID = currentUser?.uid ??
+          'HfdoBOlYEBO54oUpaSqPTf5ML452'; // Default for testing
+
+      print('👤 Current user UID: $userUID');
+
+      // Load requests from service using UID instead of email
+      final requestsData =
+          await RequestsService.getTestRequestsForUser(userUID);
+
+      print('📦 Received ${requestsData.length} requests from service');
+
+      // Convert to LikeRequest objects
+      final requests = requestsData.map((data) {
+        print('🔍 Processing request data: ${data.keys.toList()}');
+        return LikeRequest(
+          id: data['id'],
+          fromUserId: data['fromUserId'],
+          fromUserName: data['userInfo']['name'],
+          fromUserPhoto: data['userInfo']['photo'],
+          fromUserAge: data['userInfo']['age'] ?? 22,
+          fromUserBio: data['userInfo']['bio'],
+          type: data['type'] == 'superlike'
+              ? RequestType.superlike
+              : RequestType.like,
+          timestamp: data['timestamp'],
+          fullUserData: data['userInfo'], // Pass complete user data
+        );
+      }).toList();
+
+      print('✅ Successfully processed ${requests.length} requests');
+
+      setState(() {
+        _requests = requests;
+        _isLoadingRequests = false;
+      });
+    } catch (e) {
+      print('❌ Error loading requests: $e');
+      // Fallback to mock data
+      setState(() {
+        _requests = LikeRequest.getMockRequests();
+        _isLoadingRequests = false;
+      });
+    }
   }
 
   void _loadMatches() {
@@ -34,7 +117,8 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
         {
           'id': '1',
           'name': 'Sarah',
-          'photo': 'https://images.unsplash.com/photo-1494790108755-2616b67fcec?w=400',
+          'photo':
+              'https://images.unsplash.com/photo-1494790108755-2616b67fcec?w=400',
           'lastMessage': 'Hey! Thanks for the like! 😊',
           'timestamp': DateTime.now().subtract(Duration(minutes: 30)),
           'unread': true,
@@ -42,7 +126,8 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
         {
           'id': '2',
           'name': 'Jessica',
-          'photo': 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
+          'photo':
+              'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
           'lastMessage': 'Would love to grab coffee sometime!',
           'timestamp': DateTime.now().subtract(Duration(hours: 2)),
           'unread': false,
@@ -76,6 +161,47 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
             color: Colors.black,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(
+              Icons.refresh,
+              color: Colors.black,
+            ),
+            onPressed: () {
+              _refreshRequests();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Refreshing requests...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+            tooltip: 'Refresh requests',
+          ),
+          // Test button - for development only
+          IconButton(
+            icon: const Icon(
+              Icons.science,
+              color: Colors.blue,
+            ),
+            onPressed: () async {
+              // Create test like from Unnati to Utkarsh
+              final success =
+                  await RequestsService.createUnnatiLikesUtkarshTest();
+              if (success) {
+                _refreshRequests();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Test: Unnati liked Utkarsh!'),
+                    duration: Duration(seconds: 2),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+            },
+            tooltip: 'Create test like (Unnati → Utkarsh)',
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48),
           child: Container(
@@ -147,12 +273,29 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
         controller: _tabController,
         children: [
           // Requests Tab
-          RequestsList(
-            requests: _requests,
-            onAccept: _onAcceptRequest,
-            onDismiss: _onDismissRequest,
-          ),
-          
+          _isLoadingRequests
+              ? const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text(
+                        'Loading requests...',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : RequestsList(
+                  requests: _requests,
+                  onAccept: _onAcceptRequest,
+                  onDismiss: _onDismissRequest,
+                ),
+
           // Matches Tab
           _buildMatchesList(),
         ],

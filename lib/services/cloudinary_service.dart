@@ -5,7 +5,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:cloudinary_public/cloudinary_public.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// import 'ml_matching_service.dart'; // DISABLED ML SERVICE
 
 class CloudinaryService {
   // Replace with your Cloudinary credentials
@@ -16,7 +15,6 @@ class CloudinaryService {
       CloudinaryPublic(_cloudName, _uploadPreset);
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  // final MLMatchingService _mlService = MLMatchingService(); // DISABLED ML SERVICE
 
   // Upload a single image to Cloudinary from XFile (web compatible)
   Future<String?> uploadImageFromXFile(XFile imageFile) async {
@@ -45,6 +43,33 @@ class CloudinaryService {
     } catch (e) {
       print('Error uploading image to Cloudinary: $e');
       return null;
+    }
+  }
+
+  // Static method for uploading images (used by story creation)
+  static Future<String> uploadStoryImage(
+    File imageFile, {
+    String folder = 'stories',
+    String? fileName,
+  }) async {
+    try {
+      final CloudinaryPublic cloudinary = CloudinaryPublic(_cloudName, _uploadPreset);
+      
+      // Create unique filename if not provided
+      final uniqueFileName = fileName ?? 
+          '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
+      
+      final CloudinaryResponse response = await cloudinary.uploadFile(
+        CloudinaryFile.fromFile(
+          imageFile.path,
+          folder: 'patra_dating_app/$folder',
+          publicId: uniqueFileName,
+        ),
+      );
+      return response.secureUrl;
+    } catch (e) {
+      print('Error uploading image to Cloudinary: $e');
+      throw Exception('Failed to upload image: $e');
     }
   }
 
@@ -212,61 +237,6 @@ class CloudinaryService {
     }
   }
 
-  // DISABLED ML SERVICE - Get ML-powered intelligent matches 
-  // Future<List<Map<String, dynamic>>> getMLPoweredMatches(
-  //     {int count = 10}) async {
-  //   try {
-  //     print('🤖 Fetching ML-powered recommendations...');
-
-  //     // Check if ML service is available
-  //     final isMLAvailable = await _mlService.isMLServiceAvailable();
-  //     if (!isMLAvailable) {
-  //       print('⚠️ ML service unavailable, falling back to standard matching');
-  //       return getUsersForMatching();
-  //     }
-
-  //     // Get ML recommendations
-  //     final mlRecommendations =
-  //         await _mlService.getMLRecommendations(count: count);
-
-  //     if (mlRecommendations.isEmpty) {
-  //       print('⚠️ No ML recommendations, falling back to standard matching');
-  //       return getUsersForMatching();
-  //     }
-
-  //     // Convert ML recommendations to the expected format
-  //     List<Map<String, dynamic>> mlUsers = [];
-  //     for (var recommendation in mlRecommendations) {
-  //       // Get full user data from Firestore to ensure we have all fields
-  //       try {
-  //         final userDoc = await _firestore
-  //             .collection('users')
-  //             .doc(recommendation['uid'])
-  //             .get();
-
-  //         if (userDoc.exists) {
-  //           final userData = userDoc.data() as Map<String, dynamic>;
-  //           // Add ML score to user data
-  //           userData['mlScore'] = recommendation['match_score'];
-  //           userData['isMLRecommendation'] = true;
-  //           mlUsers.add(userData);
-  //         }
-  //       } catch (e) {
-  //         print(
-  //             'Warning: Could not fetch user data for ${recommendation['uid']}: $e');
-  //       }
-  //     }
-
-  //     print(
-  //         '🎯 ML recommendations loaded: ${mlUsers.length} intelligent matches');
-  //     return mlUsers;
-  //   } catch (e) {
-  //     print('❌ Error getting ML-powered matches: $e');
-  //     print('⚠️ Falling back to standard matching');
-  //     return getUsersForMatching();
-  //   }
-  // }
-
   // Original method kept for compatibility (now deprecated)
   @deprecated
   Future<List<Map<String, dynamic>>> getUsersForMatchingLegacy() async {
@@ -363,6 +333,66 @@ class CloudinaryService {
 
   // Calculate age from date of birth
   static int calculateAge(DateTime dateOfBirth) {
+    final now = DateTime.now();
+    int age = now.year - dateOfBirth.year;
+    if (now.month < dateOfBirth.month ||
+        (now.month == dateOfBirth.month && now.day < dateOfBirth.day)) {
+      age--;
+    }
+    return age;
+  }
+
+  // Complete profile setup with all collected data from multi-step signup
+  Future<bool> completeProfileSetup({
+    required List<String> interests,
+    String? bio,
+    String? location,
+    List<String>? photoUrls,
+    String? gender,
+    List<String>? orientation,
+    DateTime? dateOfBirth,
+  }) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return false;
+
+      Map<String, dynamic> updateData = {
+        'interests': interests, // Can be empty array, that's fine
+        'isProfileComplete': true,
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (bio != null && bio.isNotEmpty) updateData['bio'] = bio;
+      if (location != null && location.isNotEmpty)
+        updateData['location'] = location;
+      if (gender != null && gender.isNotEmpty) updateData['gender'] = gender;
+      if (orientation != null && orientation.isNotEmpty)
+        updateData['orientation'] = orientation;
+      if (dateOfBirth != null) {
+        updateData['dateOfBirth'] = Timestamp.fromDate(dateOfBirth);
+        // Calculate and store age
+        int age = _calculateAge(dateOfBirth);
+        updateData['age'] = age;
+      }
+      if (photoUrls != null && photoUrls.isNotEmpty) {
+        updateData['photoUrls'] = photoUrls;
+        updateData['photoUrl'] = photoUrls[0]; // Set primary photo
+      }
+
+      await _firestore.collection('users').doc(user.uid).update(updateData);
+
+      print('Profile setup completed successfully for user: ${user.uid}');
+      print(
+          'Data saved: interests=${interests.length}, bio=${bio != null}, location=${location != null}, gender=${gender != null}, orientation=${orientation?.length ?? 0}, photos=${photoUrls?.length ?? 0}, dob=${dateOfBirth != null}');
+      return true;
+    } catch (e) {
+      print('Error completing profile setup: $e');
+      return false;
+    }
+  }
+
+  // Helper method to calculate age from date of birth
+  int _calculateAge(DateTime dateOfBirth) {
     final now = DateTime.now();
     int age = now.year - dateOfBirth.year;
     if (now.month < dateOfBirth.month ||

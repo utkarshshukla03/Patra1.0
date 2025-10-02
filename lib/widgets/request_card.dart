@@ -70,6 +70,9 @@ class _RequestCardState extends State<RequestCard>
   }
 
   void _viewProfile() {
+    // Get the full user data from the request (which comes from Firebase)
+    final fullUserData = widget.request.fullUserData ?? {};
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -81,6 +84,11 @@ class _RequestCardState extends State<RequestCard>
           'age': widget.request.fromUserAge,
           'bio': widget.request.fromUserBio,
           'photo': widget.request.fromUserPhoto,
+          'interests': fullUserData['interests'] ?? [],
+          'location': fullUserData['location'] ?? 'Unknown location',
+          'gender': fullUserData['gender'] ?? '',
+          'orientation': fullUserData['orientation'] ?? [],
+          'photoUrls': fullUserData['photoUrls'] ?? [], // Add this line!
         },
       ),
     );

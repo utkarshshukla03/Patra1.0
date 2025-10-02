@@ -35,6 +35,22 @@ class User {
 
   static User fromSnap(DocumentSnapshot snap) {
     var snapshot = snap.data() as Map<String, dynamic>;
+
+    // Helper function to safely convert to List<String>
+    List<String>? safeStringList(dynamic value) {
+      if (value == null) return null;
+      if (value is List) {
+        return value
+            .map((e) => e?.toString() ?? '')
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
+      if (value is String && value.isNotEmpty) {
+        return [value];
+      }
+      return null;
+    }
+
     return User(
       email: snapshot['email'] ?? '',
       uid: snapshot['uid'] ?? '',
@@ -43,16 +59,10 @@ class User {
       bio: snapshot['bio'],
       age: snapshot['age'],
       gender: snapshot['gender'],
-      orientation: snapshot['orientation'] != null
-          ? List<String>.from(snapshot['orientation'])
-          : null,
-      interests: snapshot['interests'] != null
-          ? List<String>.from(snapshot['interests'])
-          : null,
+      orientation: safeStringList(snapshot['orientation']),
+      interests: safeStringList(snapshot['interests']),
       location: snapshot['location'],
-      photoUrls: snapshot['photoUrls'] != null
-          ? List<String>.from(snapshot['photoUrls'])
-          : null,
+      photoUrls: safeStringList(snapshot['photoUrls']),
       dateOfBirth: snapshot['dateOfBirth'] != null
           ? (snapshot['dateOfBirth'] as Timestamp).toDate()
           : null,

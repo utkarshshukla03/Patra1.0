@@ -53,16 +53,10 @@ storage.rules
 # Flutter build (except root files)
 
 # Scripts and backend
-
-ml_backend/# Development filesbuild/
-
 *.bat
 
-.vscode/
-
 # Documentation
-
-README.md.idea/# IDE
+README.md
 
 LICENSE
 *.iml.vscode/
@@ -85,17 +79,10 @@ storage.rules# Others
 
 *.log
 
-# ML Backend (not needed for web)*.tmp
-
-ml_backend/*.temp
-
-*.bat
-
-# ML Backend (not needed for web deployment)
-
-# Gitml_backend/
-
-.git/
+# Others
+*.log
+*.tmp
+*.temp
 
 # Keep these files in root for Vercel deployment
 

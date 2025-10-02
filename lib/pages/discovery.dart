@@ -1,10 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/story_map.dart';
-import '../widgets/real_snapchat_map.dart';
-import '../widgets/web_fallback_map.dart';
+import '../widgets/mapbox_story_map.dart';
 import '../widgets/story_viewer.dart';
+import '../services/story_service.dart';
 
 class DiscoveryPage extends StatefulWidget {
   const DiscoveryPage({super.key});
@@ -18,7 +17,6 @@ class _DiscoveryPageState extends State<DiscoveryPage>
   late AnimationController _mapController;
   late Animation<double> _mapAnimation;
 
-  List<UserStory> _allStories = [];
   List<HeatPoint> _heatPoints = [];
   bool _isLoading = true;
 
@@ -40,16 +38,56 @@ class _DiscoveryPageState extends State<DiscoveryPage>
   }
 
   void _loadMapData() async {
-    // Simulate loading time
-    await Future.delayed(Duration(milliseconds: 500));
+    try {
+      // Listen to real-time stories from StoryService
+      StoryService.getStoriesForMap().listen((stories) {
+        if (mounted) {
+          // Convert stories to HeatPoints for map display
+          final heatPoints = stories.map((story) => HeatPoint(
+            location: LocationPoint(
+              latitude: story.location.latitude,
+              longitude: story.location.longitude,
+              locationName: story.location.locationName,
+            ),
+            storyCount: 1,
+            stories: [
+              UserStory(
+                id: story.id,
+                userId: story.userId,
+                username: story.username,
+                userPhoto: story.userPhoto ?? '',
+                storyImage: story.storyImage,
+                storyText: story.storyText,
+                timestamp: story.timestamp,
+                location: LocationPoint(
+                  latitude: story.location.latitude,
+                  longitude: story.location.longitude,
+                  locationName: story.location.locationName,
+                ),
+              ),
+            ],
+          )).toList();
 
-    setState(() {
-      _allStories = StoryMapData.getMockStories();
-      _heatPoints = StoryMapData.generateHeatPoints(_allStories);
-      _isLoading = false;
-    });
+          setState(() {
+            _heatPoints = heatPoints;
+            _isLoading = false;
+          });
 
-    _mapController.forward();
+          // Start map animation after data is loaded
+          if (_heatPoints.isNotEmpty) {
+            _mapController.forward();
+          }
+        }
+      });
+    } catch (e) {
+      print('Error loading map data: $e');
+      if (mounted) {
+        setState(() {
+          _heatPoints = [];
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   @override
@@ -100,15 +138,10 @@ class _DiscoveryPageState extends State<DiscoveryPage>
                   scale: _mapAnimation.value,
                   child: Opacity(
                     opacity: _mapAnimation.value,
-                    child: kIsWeb
-                        ? WebFallbackMap(
-                            heatPoints: _heatPoints,
-                            onHeatPointTapped: _onHeatPointTapped,
-                          )
-                        : RealSnapchatMap(
-                            heatPoints: _heatPoints,
-                            onHeatPointTapped: _onHeatPointTapped,
-                          ),
+                    child: MapboxStoryMap(
+                      heatPoints: _heatPoints,
+                      onHeatPointTapped: _onHeatPointTapped,
+                    ),
                   ),
                 );
               },

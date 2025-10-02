@@ -1,6 +1,9 @@
 // Backend placeholder functions for Like/Superlike requests feature
 // TODO: Implement with actual backend/Firebase integration
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class RequestsService {
   // Placeholder function to accept a like request
   static Future<bool> onAccept(String requestId) async {
@@ -89,23 +92,94 @@ class RequestsService {
 
     await Future.delayed(const Duration(milliseconds: 600)); // Mock API delay
 
-    // Mock requests data
-    return [
-      {
-        'id': '1',
-        'fromUserId': 'user_001',
-        'type': 'like',
-        'timestamp': DateTime.now().subtract(const Duration(minutes: 30)),
-        'userInfo': {
-          'name': 'Emma',
-          'age': 25,
-          'photo':
-              'https://images.unsplash.com/photo-1494790108755-2616b67fcec?w=400',
-          'bio': 'Love hiking and coffee shops ☕️',
-        }
-      },
-      // ... more requests
-    ];
+    // For testing: Get the test request using current user's UID
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final testRequests = await getTestRequestsForUser(currentUser?.uid ?? '');
+
+    return testRequests;
+  }
+
+  // Test function to create a like from one UID to another
+  static Future<List<Map<String, dynamic>>> getTestRequestsForUser(
+      String userUID) async {
+    List<Map<String, dynamic>> requests = [];
+
+    // For testing: Create a like from yThH7GJ068MiTokfbrQyQ5rSwDj1 to HfdoBOlYEBO54oUpaSqPTf5ML452
+    if (userUID == 'HfdoBOlYEBO54oUpaSqPTf5ML452') {
+      // Fetch the actual user data for the person who liked
+      final likerUserData =
+          await _fetchUserDataByUID('yThH7GJ068MiTokfbrQyQ5rSwDj1');
+
+      if (likerUserData != null) {
+        requests.add({
+          'id': 'like_${DateTime.now().millisecondsSinceEpoch}',
+          'fromUserId': 'yThH7GJ068MiTokfbrQyQ5rSwDj1',
+          'type': 'like',
+          'timestamp': DateTime.now().subtract(const Duration(minutes: 5)),
+          'userInfo': likerUserData,
+        });
+      }
+    }
+
+    return requests;
+  }
+
+  // Helper function to fetch user data by UID from Firestore
+  static Future<Map<String, dynamic>?> _fetchUserDataByUID(String uid) async {
+    try {
+      final userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(uid).get();
+
+      if (userDoc.exists) {
+        final data = userDoc.data() as Map<String, dynamic>;
+
+        // Extract and format user data
+        return {
+          'name': data['username'] ?? 'Unknown User',
+          'age': data['age'] ?? _calculateAgeFromDOB(data['dateOfBirth']),
+          'photo': data['photoUrl'] ??
+              data['photoUrls']?.first ??
+              'https://via.placeholder.com/400x600?text=No+Image',
+          'bio': data['bio'] ?? 'No bio available',
+          'email': data['email'] ?? '',
+          'interests': data['interests'] ?? [],
+          'location': data['location'] ?? 'Unknown location',
+          'gender': data['gender'] ?? '',
+          'orientation': data['orientation'] ?? [],
+          'photoUrls': data['photoUrls'] ?? [],
+        };
+      }
+    } catch (e) {
+      print('Error fetching user data for UID $uid: $e');
+    }
+    return null;
+  }
+
+  // Helper function to calculate age from date of birth
+  static int? _calculateAgeFromDOB(dynamic dateOfBirth) {
+    if (dateOfBirth == null) return null;
+
+    try {
+      DateTime dob;
+      if (dateOfBirth is Timestamp) {
+        dob = dateOfBirth.toDate();
+      } else if (dateOfBirth is DateTime) {
+        dob = dateOfBirth;
+      } else {
+        return null;
+      }
+
+      final now = DateTime.now();
+      int age = now.year - dob.year;
+      if (now.month < dob.month ||
+          (now.month == dob.month && now.day < dob.day)) {
+        age--;
+      }
+      return age;
+    } catch (e) {
+      print('Error calculating age: $e');
+      return null;
+    }
   }
 
   // Placeholder function to send a like/superlike
@@ -141,6 +215,36 @@ class RequestsService {
     await Future.delayed(const Duration(milliseconds: 500)); // Mock API delay
 
     return 'chat_${DateTime.now().millisecondsSinceEpoch}'; // Mock chat ID
+  }
+
+  // Test function to simulate creating a like from one user to another
+  static Future<bool> createTestLike({
+    required String fromUserEmail,
+    required String toUserEmail,
+    String type = 'like',
+  }) async {
+    print('💕 Creating test $type from $fromUserEmail to $toUserEmail');
+
+    // Simulate database operation
+    await Future.delayed(const Duration(milliseconds: 300));
+
+    // In a real app, this would:
+    // 1. Create a record in the likes/requests table
+    // 2. Send a push notification to the target user
+    // 3. Update analytics
+    // 4. Check for a match if the target user already liked back
+
+    print('✅ Test $type created successfully!');
+    return true;
+  }
+
+  // Test function to simulate the Unnati -> Utkarsh like scenario
+  static Future<bool> createUnnatiLikesUtkarshTest() async {
+    return await createTestLike(
+      fromUserEmail: 'unnati_ma24@thapar.edu',
+      toUserEmail: 'utkarsh_mca24@thapar.edu',
+      type: 'like',
+    );
   }
 }
 

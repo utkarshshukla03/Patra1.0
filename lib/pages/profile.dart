@@ -7,7 +7,10 @@ import 'dart:typed_data';
 import 'package:flutter/foundation.dart';
 import 'package:reorderables/reorderables.dart';
 import '../models/user.dart' as custom_models;
+import '../models/story.dart';
 import '../services/cloudinary_service.dart';
+import '../services/story_service.dart';
+import '../pages/story_viewer_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -33,6 +36,10 @@ class _ProfilePageState extends State<ProfilePage> {
   List<String> selectedInterests = [];
   List<String> selectedOrientations = [];
   String? selectedGender;
+
+  // Story-related variables
+  List<Story> userStories = [];
+  bool _isLoadingStories = false;
 
   final List<String> availableInterests = [
     'Photography',
@@ -82,6 +89,7 @@ class _ProfilePageState extends State<ProfilePage> {
     super.initState();
     _loadUserData();
     _initializeImageData();
+    _loadUserStories();
   }
 
   @override
@@ -606,6 +614,11 @@ class _ProfilePageState extends State<ProfilePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Stories Section
+        _buildMyStoriesSection(),
+
+        const SizedBox(height: 24),
+
         // Bio Section
         _buildSection(
           'About Me',
@@ -1053,6 +1066,370 @@ class _ProfilePageState extends State<ProfilePage> {
                 : Colors.grey,
           ),
         ),
+      ],
+    );
+  }
+
+  // Story-related methods
+  Future<void> _loadUserStories() async {
+    if (!mounted) return;
+    
+    setState(() {
+      _isLoadingStories = true;
+    });
+
+    try {
+      final currentAuthUser = auth.FirebaseAuth.instance.currentUser;
+      if (currentAuthUser != null) {
+        StoryService.getStoriesByUser(currentAuthUser.uid).listen((stories) {
+          if (mounted) {
+            setState(() {
+              userStories = stories;
+              _isLoadingStories = false;
+            });
+          }
+        });
+      }
+    } catch (e) {
+      print('Error loading user stories: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingStories = false;
+        });
+      }
+    }
+  }
+
+  void _showAddStoryOptions() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              'Add Story',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D3436),
+              ),
+            ),
+            const SizedBox(height: 20),
+            ListTile(
+              leading: const Icon(
+                Icons.camera_alt,
+                color: Color(0xFF6C5CE7),
+              ),
+              title: const Text('Take Photo'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickStoryImage(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(
+                Icons.photo_library,
+                color: Color(0xFF6C5CE7),
+              ),
+              title: const Text('Choose from Gallery'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickStoryImage(ImageSource.gallery);
+              },
+            ),
+            const SizedBox(height: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickStoryImage(ImageSource source) async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: source);
+      
+      if (image != null) {
+        await _createStory(image);
+      }
+    } catch (e) {
+      print('Error picking image: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to pick image: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  Future<void> _createStory(XFile imageFile) async {
+    try {
+      // Show loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(
+          child: CircularProgressIndicator(),
+        ),
+      );
+
+      final currentAuthUser = auth.FirebaseAuth.instance.currentUser;
+      if (currentAuthUser == null || currentUser == null) {
+        Navigator.pop(context);
+        return;
+      }
+
+      await StoryService.createStory(
+        imageFile: imageFile,
+        currentUser: currentUser!,
+        caption: '',
+        locationName: currentUser?.location ?? 'Unknown',
+      );
+
+      Navigator.pop(context); // Close loading dialog
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Story created successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      // Refresh stories
+      _loadUserStories();
+    } catch (e) {
+      Navigator.pop(context); // Close loading dialog
+      print('Error creating story: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to create story: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _viewStory(Story story) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => StoryViewerPage(
+          story: story,
+          onStoryDeleted: () {
+            // Refresh stories after deletion
+            _loadUserStories();
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMyStoriesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const Text(
+              'My Stories',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2D3436),
+              ),
+            ),
+            if (userStories.isNotEmpty)
+              Text(
+                '${userStories.length} active',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[600],
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        
+        if (_isLoadingStories)
+          const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: CircularProgressIndicator(
+                color: Color(0xFF6C5CE7),
+              ),
+            ),
+          )
+        else
+          SizedBox(
+            height: 120,
+            child: ListView.builder(
+              scrollDirection: Axis.horizontal,
+              itemCount: userStories.length + 1, // +1 for the "Add Story" card
+              itemBuilder: (context, index) {
+                if (index == 0) {
+                  // Add Story Card (Snapchat style) - Always show first
+                  return GestureDetector(
+                    onTap: _showAddStoryOptions,
+                    child: Container(
+                      width: 80,
+                      margin: const EdgeInsets.only(right: 12),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: const Color(0xFF6C5CE7),
+                                width: 2,
+                              ),
+                              gradient: LinearGradient(
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                                colors: [
+                                  const Color(0xFF6C5CE7).withOpacity(0.1),
+                                  const Color(0xFF6C5CE7).withOpacity(0.05),
+                                ],
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 32,
+                                  height: 32,
+                                  decoration: const BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Color(0xFF6C5CE7),
+                                  ),
+                                  child: const Icon(
+                                    Icons.add,
+                                    color: Colors.white,
+                                    size: 20,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Add Story',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Color(0xFF6C5CE7),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                } else {
+                  // Existing story cards
+                  final story = userStories[index - 1];
+                  return GestureDetector(
+                    onTap: () => _viewStory(story),
+                    child: Container(
+                      width: 80,
+                      margin: const EdgeInsets.only(right: 12),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: 80,
+                            height: 100,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: story.isExpired 
+                                    ? Colors.grey.shade300 
+                                    : const Color(0xFF6C5CE7),
+                                width: 2,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.1),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(10),
+                              child: Stack(
+                                children: [
+                                  Image.network(
+                                    story.storyImage,
+                                    fit: BoxFit.cover,
+                                    width: 80,
+                                    height: 100,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        Container(
+                                      color: Colors.grey.shade200,
+                                      child: const Icon(
+                                        Icons.image,
+                                        color: Colors.grey,
+                                      ),
+                                    ),
+                                  ),
+                                  if (story.isExpired)
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(10),
+                                        color: Colors.black54,
+                                      ),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.access_time,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            story.formattedTimeRemaining,
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: story.isExpired 
+                                  ? Colors.grey.shade500
+                                  : const Color(0xFF6C5CE7),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }
+              },
+            ),
+          ),
       ],
     );
   }

@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'pages/auth/loginPage.dart';
 import 'services/config_service.dart';
+import 'services/story_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -26,6 +27,9 @@ void main() async {
 
     // Validate configuration
     ConfigService.validateConfiguration();
+
+    // Initialize automatic story cleanup
+    StoryService.initializeAutoCleanup();
 
     runApp(const MyApp());
   } catch (e) {

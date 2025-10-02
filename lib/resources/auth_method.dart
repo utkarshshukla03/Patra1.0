@@ -137,6 +137,7 @@ class AuthMethods {
         'username': username.toLowerCase(),
         'name': username,
         'email': email,
+        'photoUrl': '', // Single photo URL for backwards compatibility
         'createdAt': FieldValue.serverTimestamp(),
         'photoUrls': <String>[], // Will store Cloudinary URLs
         'bio': '',

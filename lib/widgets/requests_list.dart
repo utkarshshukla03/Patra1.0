@@ -27,6 +27,15 @@ class _RequestsListState extends State<RequestsList> {
     _requests = List.from(widget.requests);
   }
 
+  @override
+  void didUpdateWidget(covariant RequestsList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Update the internal list when the parent provides new requests
+    if (widget.requests != oldWidget.requests) {
+      _requests = List.from(widget.requests);
+    }
+  }
+
   void _handleAccept(String requestId) {
     widget.onAccept(requestId);
     setState(() {

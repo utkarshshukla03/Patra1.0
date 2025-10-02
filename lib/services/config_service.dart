@@ -36,7 +36,6 @@ class ConfigService {
 
     // Print initialization summary
     print('🔧 Environment: ${environment}');
-    print('🤖 ML Matching: ${mlMatchingEnabled ? "Enabled" : "Disabled"}');
     print('☁️  Cloudinary: ${cloudinaryCloudName}');
     print('🔥 Firebase Project: ${firebaseProjectId}');
   }
@@ -120,29 +119,21 @@ class ConfigService {
       : dotenv.env['CLOUDINARY_API_SECRET'] ?? '';
 
   // ========================================
-  // 🤖 ML SERVICE CONFIGURATION
+  // �️ MAPBOX CONFIGURATION
   // ========================================
 
-  static String get mlServiceBaseUrl => kIsWeb
-      ? const String.fromEnvironment('ML_SERVICE_BASE_URL',
-          defaultValue: 'https://patra-ml-service.onrender.com')
-      : dotenv.env['ML_SERVICE_BASE_URL'] ?? 'http://localhost:5000';
-  static String get mlServiceHealthEndpoint =>
-      dotenv.env['ML_SERVICE_HEALTH_ENDPOINT'] ?? '/health';
-  static String get mlServiceRecommendationsEndpoint =>
-      dotenv.env['ML_SERVICE_RECOMMENDATIONS_ENDPOINT'] ?? '/recommendations';
-  static String get mlServiceRefreshEndpoint =>
-      dotenv.env['ML_SERVICE_REFRESH_ENDPOINT'] ?? '/refresh-data';
+  static String get mapboxAccessToken => kIsWeb
+      ? const String.fromEnvironment('MAPBOX_ACCESS_TOKEN',
+          defaultValue: 'pk.your_mapbox_access_token_here')
+      : dotenv.env['MAPBOX_ACCESS_TOKEN'] ?? '';
 
-  static int get mlServiceTimeout =>
-      int.tryParse(dotenv.env['ML_SERVICE_TIMEOUT'] ?? '10') ?? 10;
-  static int get mlServiceHealthTimeout =>
-      int.tryParse(dotenv.env['ML_SERVICE_HEALTH_TIMEOUT'] ?? '5') ?? 5;
-  static int get mlServiceRefreshTimeout =>
-      int.tryParse(dotenv.env['ML_SERVICE_REFRESH_TIMEOUT'] ?? '30') ?? 30;
+  static String get mapboxSecretToken => kIsWeb
+      ? const String.fromEnvironment('MAPBOX_SECRET_TOKEN',
+          defaultValue: 'sk.your_mapbox_secret_token_here')
+      : dotenv.env['MAPBOX_SECRET_TOKEN'] ?? '';
 
   // ========================================
-  // 🔐 SECURITY & AUTHENTICATION
+  // �🔐 SECURITY & AUTHENTICATION
   // ========================================
 
   static String get jwtSecret => dotenv.env['JWT_SECRET'] ?? '';
@@ -170,9 +161,6 @@ class ConfigService {
   static String get buildNumber => dotenv.env['BUILD_NUMBER'] ?? '1';
 
   // Feature Flags
-  static bool get mlMatchingEnabled => kIsWeb
-      ? const bool.fromEnvironment('ML_MATCHING_ENABLED', defaultValue: false) // DISABLED ML SERVICE
-      : dotenv.env['ML_MATCHING_ENABLED']?.toLowerCase() != 'false';
   static bool get premiumFeaturesEnabled =>
       dotenv.env['PREMIUM_FEATURES_ENABLED']?.toLowerCase() == 'true';
   static bool get chatEnabled =>
@@ -202,8 +190,6 @@ class ConfigService {
       int.tryParse(dotenv.env['API_TIMEOUT_MS'] ?? '30000') ?? 30000;
   static int get imageUploadTimeoutMs =>
       int.tryParse(dotenv.env['IMAGE_UPLOAD_TIMEOUT_MS'] ?? '60000') ?? 60000;
-  static int get mlRequestTimeoutMs =>
-      int.tryParse(dotenv.env['ML_REQUEST_TIMEOUT_MS'] ?? '15000') ?? 15000;
 
   // Additional Feature Flags
   static bool get locationServicesEnabled =>
@@ -245,11 +231,6 @@ class ConfigService {
   static bool get isDevelopment => environment.toLowerCase() == 'development';
   static bool get isStaging => environment.toLowerCase() == 'staging';
 
-  /// Get full ML service URL for specific endpoint
-  static String getMlServiceUrl(String endpoint) {
-    return '$mlServiceBaseUrl$endpoint';
-  }
-
   /// Check if a required environment variable is missing
   static List<String> getMissingRequiredVariables() {
     List<String> missing = [];
@@ -279,14 +260,14 @@ class ConfigService {
       }
 
       print('🔧 Environment: $environment');
-      print('🤖 ML Matching: ${mlMatchingEnabled ? 'Enabled' : 'Disabled'}');
       print('🔍 Debug Mode: ${debugMode ? 'Enabled' : 'Disabled'}');
       print('☁️  Cloudinary: $cloudinaryCloudName');
       print('🔥 Firebase Project: $firebaseProjectId');
     } catch (e) {
       // For web builds, avoid printing minified error objects
       if (kIsWeb) {
-        print('⚠️  Configuration validation completed with web-specific settings');
+        print(
+            '⚠️  Configuration validation completed with web-specific settings');
       } else {
         print('⚠️  Warning in configuration validation: ${e.toString()}');
       }

@@ -45,6 +45,21 @@ class _HomePageState extends State<HomePage> {
 
       List<UserModel.User> loadedUsers = [];
 
+      // Helper function to safely convert to List<String>
+      List<String>? safeStringList(dynamic value) {
+        if (value == null) return null;
+        if (value is List) {
+          return value
+              .map((e) => e?.toString() ?? '')
+              .where((s) => s.isNotEmpty)
+              .toList();
+        }
+        if (value is String && value.isNotEmpty) {
+          return [value];
+        }
+        return null;
+      }
+
       for (var userData in usersData) {
         // Debug: Check age data
         // print(
@@ -72,16 +87,10 @@ class _HomePageState extends State<HomePage> {
           bio: userData['bio'],
           age: parsedAge,
           gender: userData['gender'],
-          orientation: userData['orientation'] != null
-              ? List<String>.from(userData['orientation'])
-              : null,
-          interests: userData['interests'] != null
-              ? List<String>.from(userData['interests'])
-              : null,
+          orientation: safeStringList(userData['orientation']),
+          interests: safeStringList(userData['interests']),
           location: userData['location'],
-          photoUrls: userData['photoUrls'] != null
-              ? List<String>.from(userData['photoUrls'])
-              : null,
+          photoUrls: safeStringList(userData['photoUrls']),
           dateOfBirth: userData['dateOfBirth'] != null
               ? (userData['dateOfBirth'] as Timestamp?)?.toDate()
               : null,

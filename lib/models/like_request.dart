@@ -13,6 +13,7 @@ class LikeRequest {
   final RequestType type;
   final DateTime timestamp;
   final bool isRead;
+  final Map<String, dynamic>? fullUserData; // Store complete Firebase user data
 
   LikeRequest({
     required this.id,
@@ -24,6 +25,7 @@ class LikeRequest {
     required this.type,
     required this.timestamp,
     this.isRead = false,
+    this.fullUserData,
   });
 
   // Mock data factory
