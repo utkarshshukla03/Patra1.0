@@ -22,7 +22,7 @@ class StoryCreationPage extends StatefulWidget {
 class _StoryCreationPageState extends State<StoryCreationPage> {
   final TextEditingController _captionController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
-  
+
   bool _isLoading = false;
   LocationData? _currentLocation;
 
@@ -35,7 +35,7 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
   Future<void> _getCurrentLocation() async {
     try {
       Location location = Location();
-      
+
       bool serviceEnabled = await location.serviceEnabled();
       if (!serviceEnabled) {
         serviceEnabled = await location.requestService();
@@ -49,10 +49,11 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
       }
 
       _currentLocation = await location.getLocation();
-      
+
       // Set a default location name based on Thapar campus
       if (_currentLocation != null) {
-        _locationController.text = "Thapar Institute of Engineering & Technology";
+        _locationController.text =
+            "Thapar Institute of Engineering & Technology";
       }
     } catch (e) {
       print('Error getting location: $e');
@@ -124,7 +125,7 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
               ),
             ),
           ),
-          
+
           // Input section
           Expanded(
             flex: 2,
@@ -152,7 +153,7 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  
+
                   // Caption input
                   const Text(
                     'Caption',
@@ -183,7 +184,7 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // Location input
                   const Text(
                     'Location',
@@ -199,7 +200,8 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
                     decoration: InputDecoration(
                       hintText: 'Add location',
                       hintStyle: TextStyle(color: Colors.grey[400]),
-                      prefixIcon: const Icon(Icons.location_on, color: Color(0xFF6C5CE7)),
+                      prefixIcon: const Icon(Icons.location_on,
+                          color: Color(0xFF6C5CE7)),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey[300]!),
@@ -223,7 +225,7 @@ class _StoryCreationPageState extends State<StoryCreationPage> {
 
   Future<void> _publishStory() async {
     if (_isLoading) return;
-    
+
     setState(() {
       _isLoading = true;
     });

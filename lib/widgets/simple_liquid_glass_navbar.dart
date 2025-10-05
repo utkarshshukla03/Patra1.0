@@ -51,32 +51,40 @@ class _SimpleLiquidGlassNavBarState extends State<SimpleLiquidGlassNavBar>
       child: Container(
         height: 70,
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(35),
+          borderRadius: BorderRadius.circular(10),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.15),
               blurRadius: 15,
               offset: Offset(0, 8),
             ),
+            // Additional shadow for better visibility
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 25,
+              offset: Offset(0, 15),
+            ),
           ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(35),
           child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
             child: Container(
               decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(35),
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    Colors.white.withOpacity(0.25),
-                    Colors.white.withOpacity(0.1),
+                    Colors.white.withOpacity(0.4),
+                    Colors.white.withOpacity(0.2),
+                    Colors.grey.shade100.withOpacity(0.3),
+                    Colors.grey.shade200.withOpacity(0.1),
                   ],
                 ),
-                borderRadius: BorderRadius.circular(35),
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withOpacity(0.4),
                   width: 1.5,
                 ),
               ),
@@ -141,7 +149,8 @@ class _SimpleLiquidGlassNavBarState extends State<SimpleLiquidGlassNavBar>
                 isSelected ? item.activeIcon : item.icon,
                 color: isSelected
                     ? item.activeColor
-                    : Colors.white.withOpacity(0.7),
+                    : Colors.black.withOpacity(
+                        0.6), // Changed from white to black for better visibility
                 size: isSelected ? 28 : 24,
               ),
             ),

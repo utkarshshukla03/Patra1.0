@@ -53,12 +53,13 @@ class CloudinaryService {
     String? fileName,
   }) async {
     try {
-      final CloudinaryPublic cloudinary = CloudinaryPublic(_cloudName, _uploadPreset);
-      
+      final CloudinaryPublic cloudinary =
+          CloudinaryPublic(_cloudName, _uploadPreset);
+
       // Create unique filename if not provided
-      final uniqueFileName = fileName ?? 
+      final uniqueFileName = fileName ??
           '${DateTime.now().millisecondsSinceEpoch}_${imageFile.path.split('/').last}';
-      
+
       final CloudinaryResponse response = await cloudinary.uploadFile(
         CloudinaryFile.fromFile(
           imageFile.path,

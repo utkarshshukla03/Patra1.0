@@ -128,7 +128,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                         : null,
                   ),
                   const SizedBox(width: 8),
-                  
+
                   // Username and time
                   Expanded(
                     child: Column(
@@ -164,7 +164,8 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.white),
                               ),
                             )
                           : const Icon(
@@ -201,10 +202,12 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                 ),
                 child: FractionallySizedBox(
                   alignment: Alignment.centerLeft,
-                  widthFactor: widget.story.isExpired 
-                      ? 1.0 
-                      : 1.0 - (widget.story.timeRemaining.inMilliseconds / 
-                          const Duration(hours: 24).inMilliseconds).clamp(0.0, 1.0),
+                  widthFactor: widget.story.isExpired
+                      ? 1.0
+                      : 1.0 -
+                          (widget.story.timeRemaining.inMilliseconds /
+                                  const Duration(hours: 24).inMilliseconds)
+                              .clamp(0.0, 1.0),
                   child: Container(
                     decoration: BoxDecoration(
                       color: Colors.white,
@@ -337,10 +340,10 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
             duration: Duration(seconds: 2),
           ),
         );
-        
+
         // Call callback if provided
         widget.onStoryDeleted?.call();
-        
+
         // Close the story viewer
         Navigator.pop(context);
       } else if (mounted) {

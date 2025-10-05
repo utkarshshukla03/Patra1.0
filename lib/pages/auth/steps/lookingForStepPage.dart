@@ -19,82 +19,58 @@ class _LookingForStepPageState extends State<LookingForStepPage> {
 
   final List<Map<String, dynamic>> lookingForOptions = [
     {
-      'value': 'Woman',
-      'icon': Icons.female,
-      'color': Colors.pink,
-      'description': 'Women',
+      'value': 'Friends',
+      'icon': Icons.people,
+      'color': Colors.lightBlue, // Trust, loyalty, reliability
+      'description': 'Friends',
     },
     {
-      'value': 'Man',
-      'icon': Icons.male,
-      'color': Colors.blue,
-      'description': 'Men',
+      'value': 'Study Buddy',
+      'icon': Icons.school,
+      'color': Colors.green, // Growth, learning, harmony
+      'description': 'Study Buddy',
     },
     {
-      'value': 'Non-binary',
-      'icon': Icons.circle,
-      'color': Colors.purple,
-      'description': 'Non-binary',
+      'value': 'Fun',
+      'icon': Icons.celebration,
+      'color': Colors.orange, // Energy, enthusiasm, playfulness
+      'description': 'Fun',
     },
     {
-      'value': 'Trans Woman',
-      'icon': Icons.transgender,
-      'color': Colors.pink.shade300,
-      'description': 'Trans Women',
+      'value': 'Casual',
+      'icon': Icons.coffee,
+      'color': Colors.amber, // Warmth, comfort, easygoing
+      'description': 'Casual',
     },
     {
-      'value': 'Trans Man',
-      'icon': Icons.transgender,
-      'color': Colors.blue.shade300,
-      'description': 'Trans Men',
-    },
-    {
-      'value': 'Genderfluid',
-      'icon': Icons.water_drop,
-      'color': Colors.indigo,
-      'description': 'Genderfluid',
-    },
-    {
-      'value': 'Gay',
+      'value': 'Long Term',
       'icon': Icons.favorite,
-      'color': Colors.teal,
-      'description': 'Gay',
+      'color': Colors.red, // Passion, love, commitment
+      'description': 'Long Term',
     },
     {
-      'value': 'Lesbian',
-      'icon': Icons.favorite,
-      'color': Colors.deepOrange,
-      'description': 'Lesbian',
+      'value': 'Activity',
+      'icon': Icons.directions_run,
+      'color': Colors.deepOrange, // Energy, movement, vitality
+      'description': 'Activity',
     },
     {
-      'value': 'Bisexual',
-      'icon': Icons.favorite_border,
-      'color': Colors.deepPurple,
-      'description': 'Bisexual',
-    },
-    {
-      'value': 'Pansexual',
-      'icon': Icons.favorite_rounded,
-      'color': Colors.yellow.shade700,
-      'description': 'Pansexual',
-    },
-    {
-      'value': 'Everyone',
-      'icon': Icons.group,
-      'color': Colors.orange,
-      'description': 'Everyone',
+      'value': 'Open',
+      'icon': Icons.explore,
+      'color': Colors.indigo, // Openness, wisdom, inclusivity
+      'description': 'Open',
     },
   ];
 
   void _togglePreference(String preference) {
     setState(() {
-      if (preference == 'Everyone') {
-        // If "Everyone" is selected, clear other selections and add everyone
+      if (preference == 'Open') {
+        // If "Open" is selected, clear other selections and add open
         selectedPreferences.clear();
-        selectedPreferences.add('Everyone');
+        selectedPreferences.add('Open');
       } else {
-        // Remove "Everyone" if specific preference is selected
-        selectedPreferences.remove('Everyone');
+        // Remove "Open" if specific preference is selected
+        selectedPreferences.remove('Open');
 
         if (selectedPreferences.contains(preference)) {
           selectedPreferences.remove(preference);
@@ -124,7 +100,7 @@ class _LookingForStepPageState extends State<LookingForStepPage> {
 
                   // Header
                   Text(
-                    'Show me',
+                    'I\'m looking for',
                     style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.bold,
@@ -135,7 +111,7 @@ class _LookingForStepPageState extends State<LookingForStepPage> {
                   SizedBox(height: 8),
 
                   Text(
-                    'Who would you like to see? You can choose multiple options',
+                    'What kind of connection are you seeking? You can choose multiple options',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[600],
@@ -214,8 +190,8 @@ class _LookingForStepPageState extends State<LookingForStepPage> {
                               ),
                               child: Text(
                                 selectedPreferences.length == 1 &&
-                                        selectedPreferences.contains('Everyone')
-                                    ? 'Showing everyone'
+                                        selectedPreferences.contains('Open')
+                                    ? 'Open to all connections'
                                     : '${selectedPreferences.length} option${selectedPreferences.length == 1 ? '' : 's'} selected',
                                 style: TextStyle(
                                   fontSize: 14,

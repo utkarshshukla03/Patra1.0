@@ -10,9 +10,9 @@ import 'cloudinary_service.dart';
 class StoryService {
   static final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   static final FirebaseAuth _auth = FirebaseAuth.instance;
-  
+
   // Collection reference for stories
-  static CollectionReference get _storiesCollection => 
+  static CollectionReference get _storiesCollection =>
       _firestore.collection('stories');
 
   /// Create and upload a new story
@@ -27,10 +27,10 @@ class StoryService {
     try {
       // Generate unique story ID
       final storyId = _storiesCollection.doc().id;
-      
+
       // Upload image to Cloudinary with organized folder structure
       final imageUrl = await _uploadStoryImage(
-        imageFile, 
+        imageFile,
         userId: currentUser.uid,
         storyId: storyId,
       );
@@ -39,8 +39,8 @@ class StoryService {
       final location = StoryLocation(
         latitude: latitude ?? 30.3540, // Default to Thapar coordinates
         longitude: longitude ?? 76.3636,
-        locationName: locationName.isNotEmpty 
-            ? locationName 
+        locationName: locationName.isNotEmpty
+            ? locationName
             : 'Thapar Institute of Engineering & Technology',
       );
 
@@ -49,8 +49,8 @@ class StoryService {
         id: storyId,
         userId: currentUser.uid,
         username: currentUser.username,
-        userPhoto: currentUser.photoUrls?.isNotEmpty == true 
-            ? currentUser.photoUrls!.first 
+        userPhoto: currentUser.photoUrls?.isNotEmpty == true
+            ? currentUser.photoUrls!.first
             : currentUser.photoUrl,
         storyImage: imageUrl,
         storyText: caption,
@@ -81,7 +81,7 @@ class StoryService {
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final folderPath = 'stories/$userId';
       final fileName = '${timestamp}_$storyId';
-      
+
       return await CloudinaryService.uploadStoryImage(
         File(imageFile.path),
         folder: folderPath,
@@ -95,18 +95,16 @@ class StoryService {
   /// Get all active stories (not expired) - simplified version
   static Stream<List<Story>> getActiveStories() {
     // Simple query without orderBy to avoid index requirements
-    return _storiesCollection
-        .snapshots()
-        .map((snapshot) {
-          final stories = snapshot.docs
-              .map((doc) => Story.fromFirestore(doc))
-              .where((story) => story.isActive && !story.isExpired)
-              .toList();
-          
-          // Sort client-side by timestamp descending
-          stories.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return stories;
-        });
+    return _storiesCollection.snapshots().map((snapshot) {
+      final stories = snapshot.docs
+          .map((doc) => Story.fromFirestore(doc))
+          .where((story) => story.isActive && !story.isExpired)
+          .toList();
+
+      // Sort client-side by timestamp descending
+      stories.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return stories;
+    });
   }
 
   /// Get stories by user ID - simplified version (no index required)
@@ -116,32 +114,30 @@ class StoryService {
         .where('userId', isEqualTo: userId)
         .snapshots()
         .map((snapshot) {
-          final stories = snapshot.docs
-              .map((doc) => Story.fromFirestore(doc))
-              .where((story) => story.isActive && !story.isExpired)
-              .toList();
-          
-          // Sort client-side by timestamp descending
-          stories.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return stories;
-        });
+      final stories = snapshot.docs
+          .map((doc) => Story.fromFirestore(doc))
+          .where((story) => story.isActive && !story.isExpired)
+          .toList();
+
+      // Sort client-side by timestamp descending
+      stories.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return stories;
+    });
   }
 
   /// Get stories for map display (with location data) - simplified version
   static Stream<List<Story>> getStoriesForMap() {
     // Simple query without orderBy to avoid index requirements
-    return _storiesCollection
-        .snapshots()
-        .map((snapshot) {
-          final stories = snapshot.docs
-              .map((doc) => Story.fromFirestore(doc))
-              .where((story) => story.isActive && !story.isExpired)
-              .toList();
-          
-          // Sort client-side by timestamp descending
-          stories.sort((a, b) => b.timestamp.compareTo(a.timestamp));
-          return stories;
-        });
+    return _storiesCollection.snapshots().map((snapshot) {
+      final stories = snapshot.docs
+          .map((doc) => Story.fromFirestore(doc))
+          .where((story) => story.isActive && !story.isExpired)
+          .toList();
+
+      // Sort client-side by timestamp descending
+      stories.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      return stories;
+    });
   }
 
   /// Mark story as viewed by current user
@@ -188,7 +184,7 @@ class StoryService {
     Timer.periodic(const Duration(hours: 1), (timer) {
       cleanupExpiredStories();
     });
-    
+
     // Also run cleanup immediately
     cleanupExpiredStories();
   }
@@ -215,9 +211,8 @@ class StoryService {
   /// Get story analytics for a user
   static Future<Map<String, dynamic>> getStoryAnalytics(String userId) async {
     try {
-      final userStoriesQuery = await _storiesCollection
-          .where('userId', isEqualTo: userId)
-          .get();
+      final userStoriesQuery =
+          await _storiesCollection.where('userId', isEqualTo: userId).get();
 
       int totalStories = userStoriesQuery.docs.length;
       int totalViews = 0;
@@ -233,7 +228,8 @@ class StoryService {
         'totalStories': totalStories,
         'totalViews': totalViews,
         'activeStories': activeStories,
-        'averageViewsPerStory': totalStories > 0 ? totalViews / totalStories : 0,
+        'averageViewsPerStory':
+            totalStories > 0 ? totalViews / totalStories : 0,
       };
     } catch (e) {
       print('Error getting story analytics: $e');

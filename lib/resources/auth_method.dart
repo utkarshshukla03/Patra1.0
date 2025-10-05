@@ -291,6 +291,42 @@ class AuthMethods {
     }
   }
 
+  // Update user profile with new information
+  Future<String> updateUserProfile({
+    String? bio,
+    String? location,
+    String? gender,
+    int? age,
+    List<String>? interests,
+    List<String>? orientation,
+    List<String>? photoUrls,
+  }) async {
+    try {
+      String? uid = getCurrentUserId();
+      if (uid == null) return "No user logged in";
+
+      Map<String, dynamic> updateData = {
+        'lastUpdatedAt': FieldValue.serverTimestamp(),
+      };
+
+      // Only update fields that are provided
+      if (bio != null) updateData['bio'] = bio;
+      if (location != null) updateData['location'] = location;
+      if (gender != null) updateData['gender'] = gender;
+      if (age != null) updateData['age'] = age;
+      if (interests != null) updateData['interests'] = interests;
+      if (orientation != null) updateData['orientation'] = orientation;
+      if (photoUrls != null) updateData['photoUrls'] = photoUrls;
+
+      await _firestore.collection('users').doc(uid).update(updateData);
+
+      return "Success";
+    } catch (e) {
+      print('Error updating user profile: $e');
+      return "Error updating profile: $e";
+    }
+  }
+
   // Test Firebase connection
   Future<String> testFirebaseConnection() async {
     try {

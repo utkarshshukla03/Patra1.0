@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:location/location.dart';
+import 'package:geolocator/geolocator.dart';
 import 'dart:async';
 import '../models/story_map.dart';
 
@@ -24,10 +25,9 @@ class _MapboxStoryMapState extends State<MapboxStoryMap>
     with TickerProviderStateMixin {
   MapController _mapController = MapController();
 
-  Location location = Location();
-  LocationData? _currentLocation;
+  Position? _currentPosition;
   bool _serviceEnabled = false;
-  PermissionStatus _permissionGranted = PermissionStatus.denied;
+  LocationPermission _permissionGranted = LocationPermission.denied;
 
   // Thapar Institute coordinates
   static const LatLng _thaparCenter = LatLng(30.3540, 76.3636);
@@ -52,25 +52,40 @@ class _MapboxStoryMapState extends State<MapboxStoryMap>
   }
 
   Future<void> _checkLocationPermission() async {
-    _serviceEnabled = await location.serviceEnabled();
-    if (!_serviceEnabled) {
-      _serviceEnabled = await location.requestService();
+    try {
+      // Check if location services are enabled
+      _serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!_serviceEnabled) {
+        print('Location services are disabled.');
         return;
       }
-    }
 
-    _permissionGranted = await location.hasPermission();
-    if (_permissionGranted == PermissionStatus.denied) {
-      _permissionGranted = await location.requestPermission();
-      if (_permissionGranted != PermissionStatus.granted) {
+      // Check location permission
+      _permissionGranted = await Geolocator.checkPermission();
+      if (_permissionGranted == LocationPermission.denied) {
+        _permissionGranted = await Geolocator.requestPermission();
+        if (_permissionGranted == LocationPermission.denied) {
+          print('Location permissions are denied');
+          return;
+        }
+      }
+
+      if (_permissionGranted == LocationPermission.deniedForever) {
+        print('Location permissions are permanently denied');
         return;
       }
-    }
 
-    _currentLocation = await location.getLocation();
-    if (mounted) {
-      setState(() {});
+      // Get current location
+      _currentPosition = await Geolocator.getCurrentPosition();
+      if (mounted) {
+        setState(() {});
+      }
+    } catch (e) {
+      print('Error getting location: $e');
+      // On web, if there's an error, just continue without location
+      if (kIsWeb) {
+        print('Web location error ignored, continuing...');
+      }
     }
   }
 
@@ -133,10 +148,10 @@ class _MapboxStoryMapState extends State<MapboxStoryMap>
   }
 
   Future<void> _moveToUserLocation() async {
-    if (_currentLocation != null) {
+    if (_currentPosition != null) {
       final userLatLng = LatLng(
-        _currentLocation!.latitude!,
-        _currentLocation!.longitude!,
+        _currentPosition!.latitude,
+        _currentPosition!.longitude,
       );
 
       _mapController.move(userLatLng, 16.0);

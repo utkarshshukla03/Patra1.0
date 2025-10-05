@@ -56,7 +56,7 @@ class Story {
       timestamp: (map['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
       location: StoryLocation.fromMap(map['location'] ?? {}),
       isViewed: map['isViewed'] ?? false,
-      expiresAt: (map['expiresAt'] as Timestamp?)?.toDate() ?? 
+      expiresAt: (map['expiresAt'] as Timestamp?)?.toDate() ??
           DateTime.now().add(const Duration(hours: 24)),
       viewedBy: List<String>.from(map['viewedBy'] ?? []),
     );
@@ -79,7 +79,7 @@ class Story {
   // Get formatted time remaining (e.g., "2h", "30m", "expired")
   String get formattedTimeRemaining {
     if (isExpired) return "expired";
-    
+
     final remaining = timeRemaining;
     if (remaining.inHours > 0) {
       return "${remaining.inHours}h";

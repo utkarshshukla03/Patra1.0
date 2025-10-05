@@ -62,20 +62,7 @@ class _ProfileModalState extends State<ProfileModal> {
         'interests': widget.user!.interests ?? [],
         'location': widget.user!.location,
         'gender': widget.user!.gender,
-        'prompts': [
-          {
-            'question': 'About me',
-            'answer': widget.user!.bio ?? 'Getting to know me better...'
-          },
-          if (widget.user!.interests != null &&
-              widget.user!.interests!.isNotEmpty)
-            {
-              'question': 'My interests',
-              'answer': widget.user!.interests!.join(', ')
-            },
-          if (widget.user!.location != null)
-            {'question': 'Location', 'answer': widget.user!.location!},
-        ],
+        'orientation': widget.user!.orientation ?? [],
       };
     } else {
       // Request user - use real Firebase data
@@ -92,14 +79,6 @@ class _ProfileModalState extends State<ProfileModal> {
         'location': widget.requestUserData?['location'] ?? 'Unknown location',
         'gender': widget.requestUserData?['gender'] ?? 'Not specified',
         'orientation': orientation.map((e) => e.toString()).toList(),
-        'prompts': [
-          // Only include bio, no duplicate info sections
-          {
-            'question': 'About me',
-            'answer':
-                widget.requestUserData?['bio'] ?? 'Getting to know me better...'
-          },
-        ],
       };
     }
   }
@@ -258,22 +237,38 @@ class _ProfileModalState extends State<ProfileModal> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Name and Age
+                        // 1. Name and Age (Most Important)
                         Row(
                           children: [
-                            Text(
-                              _profileData['name'],
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Text(
+                                _profileData['name'],
+                                style: const TextStyle(
+                                  fontSize: 28,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black87,
+                                ),
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${_profileData['age']}',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                color: Colors.grey,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.pink.shade50,
+                                borderRadius: BorderRadius.circular(15),
+                                border: Border.all(
+                                  color: Colors.pink.shade200,
+                                ),
+                              ),
+                              child: Text(
+                                '${_profileData['age']}',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.pink.shade700,
+                                ),
                               ),
                             ),
                           ],
@@ -281,74 +276,112 @@ class _ProfileModalState extends State<ProfileModal> {
 
                         const SizedBox(height: 16),
 
-                        // Bio
-                        Text(
-                          _profileData['bio'],
-                          style: const TextStyle(
-                            fontSize: 16,
-                            height: 1.4,
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Location and Gender
-                        if (widget.user != null) ...[
-                          // Home page user
-                          if (_profileData['location'] != null) ...[
-                            Row(
-                              children: [
-                                const Icon(Icons.location_on,
-                                    size: 20, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text(
+                        // 2. Location (Important for dating)
+                        if (_profileData['location'] != null &&
+                            _profileData['location'] != 'Unknown location' &&
+                            _profileData['location'].toString().isNotEmpty) ...[
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.location_on,
+                                size: 18,
+                                color: Colors.grey.shade600,
+                              ),
+                              const SizedBox(width: 6),
+                              Expanded(
+                                child: Text(
                                   _profileData['location'],
-                                  style: const TextStyle(
-                                      fontSize: 16, color: Colors.grey),
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                          ],
-                          if (_profileData['location'] != null &&
-                              _profileData['gender'] != null)
-                            const SizedBox(height: 8),
-                          if (_profileData['gender'] != null) ...[
-                            Row(
-                              children: [
-                                const Icon(Icons.person,
-                                    size: 20, color: Colors.grey),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _profileData['gender'],
-                                  style: const TextStyle(
-                                      fontSize: 16, color: Colors.grey),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ] else ...[
-                          // Request user - show more detailed info sections
-                          _buildInfoSection(
-                              'Location', _profileData['location']),
-                          _buildInfoSection('Gender', _profileData['gender']),
-                          if (_profileData['orientation'] != null &&
-                              (_profileData['orientation'] as List).isNotEmpty)
-                            _buildInfoSection(
-                                'Looking for',
-                                (_profileData['orientation'] as List)
-                                    .join(', ')),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
                         ],
 
-                        const SizedBox(height: 24),
+                        // 3. Bio/About (Personal Description)
+                        if (_profileData['bio'] != null &&
+                            _profileData['bio'] != 'No bio available' &&
+                            _profileData['bio'].toString().isNotEmpty) ...[
+                          const Text(
+                            'About',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                              ),
+                            ),
+                            child: Text(
+                              _profileData['bio'],
+                              style: const TextStyle(
+                                fontSize: 16,
+                                height: 1.5,
+                                color: Colors.black87,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
 
-                        // Interests/Hobbies
+                        // 4. Looking For (What they want)
+                        if (_profileData['orientation'] != null &&
+                            (_profileData['orientation'] as List)
+                                .isNotEmpty) ...[
+                          const Text(
+                            'Looking for',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.blue.shade200,
+                              ),
+                            ),
+                            child: Text(
+                              (_profileData['orientation'] as List).join(', '),
+                              style: TextStyle(
+                                fontSize: 16,
+                                height: 1.4,
+                                color: Colors.blue.shade800,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                        ],
+
+                        // 5. Interests/Hobbies (Compatibility)
                         if ((_profileData['interests'] as List).isNotEmpty) ...[
                           const Text(
                             'Interests',
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
+                              color: Colors.black87,
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -359,7 +392,7 @@ class _ProfileModalState extends State<ProfileModal> {
                                     as List<dynamic>)
                                 .map((interest) => Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 12, vertical: 6),
+                                          horizontal: 14, vertical: 8),
                                       decoration: BoxDecoration(
                                         color: Colors.pink.shade50,
                                         borderRadius: BorderRadius.circular(20),
@@ -372,7 +405,8 @@ class _ProfileModalState extends State<ProfileModal> {
                                         interest.toString(),
                                         style: TextStyle(
                                           color: Colors.pink.shade700,
-                                          fontWeight: FontWeight.w500,
+                                          fontWeight: FontWeight.w600,
+                                          fontSize: 14,
                                         ),
                                       ),
                                     ))
@@ -381,46 +415,44 @@ class _ProfileModalState extends State<ProfileModal> {
                           const SizedBox(height: 24),
                         ],
 
-                        // Prompts
-                        ...(_profileData['prompts']
-                                as List<Map<String, dynamic>>)
-                            .map((prompt) => Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      prompt['question']?.toString() ??
-                                          'Question',
-                                      style: const TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Container(
-                                      width: double.infinity,
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.grey.shade50,
-                                        borderRadius: BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: Colors.grey.shade200,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        prompt['answer']?.toString() ??
-                                            'No answer provided',
-                                        style: const TextStyle(
-                                          fontSize: 15,
-                                          height: 1.4,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                  ],
-                                )),
-
-                        const SizedBox(height: 20),
+                        // 6. Additional Info (Gender, etc.)
+                        if (_profileData['gender'] != null &&
+                            _profileData['gender'] != 'Not specified' &&
+                            _profileData['gender'].toString().isNotEmpty) ...[
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Colors.grey.shade200,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Icon(
+                                  _getGenderIcon(_profileData['gender']),
+                                  size: 20,
+                                  color: Colors.grey.shade600,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  _profileData['gender'],
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.grey.shade700,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                       ],
                     ),
                   ),
@@ -476,6 +508,21 @@ class _ProfileModalState extends State<ProfileModal> {
         ],
       ),
     );
+  }
+
+  // Helper method to get gender icon
+  IconData _getGenderIcon(String? gender) {
+    switch (gender?.toLowerCase()) {
+      case 'male':
+        return Icons.male;
+      case 'female':
+        return Icons.female;
+      case 'non-binary':
+      case 'other':
+        return Icons.transgender;
+      default:
+        return Icons.person;
+    }
   }
 
   @override
