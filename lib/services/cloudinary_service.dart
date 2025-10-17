@@ -194,7 +194,8 @@ class CloudinaryService {
   }
 
   // Get ML-powered user recommendations
-  Future<List<Map<String, dynamic>>> getMLPoweredMatches({int count = 10}) async {
+  Future<List<Map<String, dynamic>>> getMLPoweredMatches(
+      {int count = 10}) async {
     try {
       final user = _auth.currentUser;
       if (user == null) {
@@ -202,18 +203,21 @@ class CloudinaryService {
         return [];
       }
 
-      print('🚀 ML Matching: Getting ML-powered recommendations for user ${user.uid}');
+      print(
+          '🚀 ML Matching: Getting ML-powered recommendations for user ${user.uid}');
 
       // Check if ML service is available
       print('🔍 ML Matching: Checking ML service availability...');
       final isMLAvailable = await MLService.isMLServiceAvailable();
-      
+
       if (!isMLAvailable) {
-        print('❌ ML Matching: ML service unavailable, falling back to regular matching');
+        print(
+            '❌ ML Matching: ML service unavailable, falling back to regular matching');
         return await getUsersForMatching();
       }
-      
-      print('✅ ML Matching: ML service is available, proceeding with ML recommendations');
+
+      print(
+          '✅ ML Matching: ML service is available, proceeding with ML recommendations');
 
       // Get ML recommendations
       final mlRecommendations = await MLService.getRecommendations(
@@ -222,16 +226,19 @@ class CloudinaryService {
       );
 
       if (mlRecommendations.isEmpty) {
-        print('⚠️  ML Matching: No ML recommendations received, falling back to regular matching');
+        print(
+            '⚠️  ML Matching: No ML recommendations received, falling back to regular matching');
         return await getUsersForMatching();
       }
 
-      print('🎯 ML Matching: Received ${mlRecommendations.length} ML recommendations from backend');
-      print('📋 ML Matching: Processing recommendations and fetching full user data...');
+      print(
+          '🎯 ML Matching: Received ${mlRecommendations.length} ML recommendations from backend');
+      print(
+          '📋 ML Matching: Processing recommendations and fetching full user data...');
 
       // Get full user data for recommended users
       final List<Map<String, dynamic>> enrichedUsers = [];
-      
+
       // Get all swipes to filter out already swiped users
       final QuerySnapshot swipeSnapshot = await _firestore
           .collection('swipes')
@@ -246,15 +253,16 @@ class CloudinaryService {
 
       for (var recommendation in mlRecommendations) {
         final recommendedUserId = recommendation['user_id'];
-        
+
         // Skip if already swiped
         if (swipeMap[recommendedUserId] == true) {
           continue;
         }
 
         try {
-          print('🔍 Processing ML recommendation ${enrichedUsers.length + 1}: User $recommendedUserId (Score: ${recommendation['compatibility_score']?.toStringAsFixed(3)})');
-          
+          print(
+              '🔍 Processing ML recommendation ${enrichedUsers.length + 1}: User $recommendedUserId (Score: ${recommendation['compatibility_score']?.toStringAsFixed(3)})');
+
           // Get full user data from Firestore
           final userDoc = await _firestore
               .collection('users')
@@ -264,62 +272,72 @@ class CloudinaryService {
 
           if (userDoc.docs.isNotEmpty) {
             final userData = userDoc.docs.first.data();
-            print('   ✅ Found user data: ${userData['name']} (${userData['age']}) from ${userData['location']}');
-            
+            print(
+                '   ✅ Found user data: ${userData['name']} (${userData['age']}) from ${userData['location']}');
+
             // Enrich with ML data
             final enrichedUser = MLService.convertMLRecommendationToUser(
               recommendation,
               userData,
             );
-            
+
             enrichedUsers.add(enrichedUser);
-            print('   ➕ Added to final matches list (${enrichedUsers.length}/${count})');
-            
+            print(
+                '   ➕ Added to final matches list (${enrichedUsers.length}/${count})');
+
             // Stop when we have enough users
             if (enrichedUsers.length >= count) {
-              print('🎯 Reached target count of $count users, stopping processing');
+              print(
+                  '🎯 Reached target count of $count users, stopping processing');
               break;
             }
           } else {
             print('   ⚠️ User data not found for $recommendedUserId');
           }
         } catch (e) {
-          print('❌ ML Matching: Error getting user data for $recommendedUserId: $e');
+          print(
+              '❌ ML Matching: Error getting user data for $recommendedUserId: $e');
           continue;
         }
       }
 
-      print('✅ ML Matching: Successfully processed ${enrichedUsers.length} ML-powered matches');
+      print(
+          '✅ ML Matching: Successfully processed ${enrichedUsers.length} ML-powered matches');
       print('🔥 FINAL RECOMMENDED USERS FOR DISPLAY:');
-      
+
       // Print comprehensive final user details
       for (int i = 0; i < enrichedUsers.length && i < 10; i++) {
         final user = enrichedUsers[i];
         print('   🏆 MATCH #${i + 1}:');
-        print('      👤 Name: ${user['name'] ?? 'N/A'} (${user['age'] ?? 'N/A'} years old)');
+        print(
+            '      👤 Name: ${user['name'] ?? 'N/A'} (${user['age'] ?? 'N/A'} years old)');
         print('      📍 Location: ${user['location'] ?? 'N/A'}');
-        print('      💯 ML Score: ${user['ml_score']?.toStringAsFixed(4) ?? 'N/A'}');
-        print('      💝 Interests: ${user['interests']?.join(', ') ?? 'None listed'}');
+        print(
+            '      💯 ML Score: ${user['ml_score']?.toStringAsFixed(4) ?? 'N/A'}');
+        print(
+            '      💝 Interests: ${user['interests']?.join(', ') ?? 'None listed'}');
         print('      📱 Gender: ${user['gender'] ?? 'N/A'}');
-        print('      💌 Bio: ${user['bio']?.substring(0, user['bio']?.length > 50 ? 50 : user['bio']?.length)?.trim() ?? 'No bio'}${user['bio']?.length > 50 ? '...' : ''}');
+        print(
+            '      💌 Bio: ${user['bio']?.substring(0, user['bio']?.length > 50 ? 50 : user['bio']?.length)?.trim() ?? 'No bio'}${user['bio']?.length > 50 ? '...' : ''}');
         if (i < 3) print('      ═══════════════════════════════');
       }
-      
+
       // If we don't have enough ML matches, supplement with regular matches
       if (enrichedUsers.length < count) {
         final regularMatches = await getUsersForMatching();
         final needed = count - enrichedUsers.length;
-        
+
         // Add regular matches that aren't already in ML results
         final mlUserIds = enrichedUsers.map((u) => u['uid']).toSet();
         final supplementalMatches = regularMatches
             .where((u) => !mlUserIds.contains(u['uid']))
             .take(needed)
             .toList();
-            
+
         enrichedUsers.addAll(supplementalMatches);
-        
-        print('🤖 ML Matching: Added ${supplementalMatches.length} regular matches to supplement');
+
+        print(
+            '🤖 ML Matching: Added ${supplementalMatches.length} regular matches to supplement');
       }
 
       return enrichedUsers;

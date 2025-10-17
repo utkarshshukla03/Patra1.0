@@ -4,9 +4,9 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
 class MLService {
-  static const String _baseUrl = kDebugMode 
-      ? 'http://localhost:5000/api'  // Development
-      : 'https://your-ml-api-url.com/api';  // Production
+  static const String _baseUrl = kDebugMode
+      ? 'http://localhost:5000/api' // Development
+      : 'https://your-ml-api-url.com/api'; // Production
 
   static const Duration _timeout = Duration(seconds: 30);
 
@@ -17,10 +17,11 @@ class MLService {
   }) async {
     try {
       final url = Uri.parse('$_baseUrl/recommendations/$userId?count=$count');
-      
-      print('🤖 ML Service: Fetching recommendations for user $userId (count: $count)');
+
+      print(
+          '🤖 ML Service: Fetching recommendations for user $userId (count: $count)');
       print('🌐 ML Service: API URL: $url');
-      
+
       final response = await http.get(
         url,
         headers: {
@@ -30,41 +31,48 @@ class MLService {
       ).timeout(_timeout);
 
       print('🤖 ML Service: Response status ${response.statusCode}');
-      print('🤖 ML Service: Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}...');
+      print(
+          '🤖 ML Service: Response body: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}...');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        
+
         if (data['success'] == true) {
-          final recommendations = List<Map<String, dynamic>>.from(
-            data['recommendations'] ?? []
-          );
-          
-          print('✅ ML Service: Got ${recommendations.length} ML recommendations');
+          final recommendations =
+              List<Map<String, dynamic>>.from(data['recommendations'] ?? []);
+
+          print(
+              '✅ ML Service: Got ${recommendations.length} ML recommendations');
           print('📊 ML ALGORITHM DETAILS:');
-          
+
           // Print detailed recommendation list with all available data
           for (int i = 0; i < recommendations.length && i < 15; i++) {
             final rec = recommendations[i];
             print('   🎯 Rank #${i + 1}:');
             print('      👤 User ID: ${rec['user_id']}');
-            print('      💯 Compatibility Score: ${rec['compatibility_score']?.toStringAsFixed(4) ?? 'N/A'}');
-            print('      🎪 Age Score: ${rec['age_score']?.toStringAsFixed(3) ?? 'N/A'}');
-            print('      📍 Location Score: ${rec['location_score']?.toStringAsFixed(3) ?? 'N/A'}');
-            print('      💝 Interest Score: ${rec['interest_score']?.toStringAsFixed(3) ?? 'N/A'}');
+            print(
+                '      💯 Compatibility Score: ${rec['compatibility_score']?.toStringAsFixed(4) ?? 'N/A'}');
+            print(
+                '      🎪 Age Score: ${rec['age_score']?.toStringAsFixed(3) ?? 'N/A'}');
+            print(
+                '      📍 Location Score: ${rec['location_score']?.toStringAsFixed(3) ?? 'N/A'}');
+            print(
+                '      💝 Interest Score: ${rec['interest_score']?.toStringAsFixed(3) ?? 'N/A'}');
             print('      ⭐ Elo Rating: ${rec['elo_score'] ?? 'N/A'}');
             if (i < 5) print('      ═══════════════════════════════');
           }
-          
+
           return recommendations;
         } else {
           throw Exception('ML API returned error: ${data['message']}');
         }
       } else if (response.statusCode == 404) {
-        print('🤖 ML Service: User not found in ML system, falling back to regular matching');
+        print(
+            '🤖 ML Service: User not found in ML system, falling back to regular matching');
         return [];
       } else {
-        throw Exception('ML API request failed with status ${response.statusCode}');
+        throw Exception(
+            'ML API request failed with status ${response.statusCode}');
       }
     } on SocketException {
       print('🤖 ML Service: Network error - ML service unavailable');
@@ -86,23 +94,27 @@ class MLService {
   ) async {
     try {
       final url = Uri.parse('$_baseUrl/interaction');
-      
-      print('🤖 ML Service: Recording interaction $userId -> $targetId ($action)');
-      
-      final response = await http.post(
-        url,
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: json.encode({
-          'user_id': userId,
-          'target_id': targetId,
-          'action': action,
-        }),
-      ).timeout(_timeout);
 
-      print('🤖 ML Service: Interaction response status ${response.statusCode}');
+      print(
+          '🤖 ML Service: Recording interaction $userId -> $targetId ($action)');
+
+      final response = await http
+          .post(
+            url,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: json.encode({
+              'user_id': userId,
+              'target_id': targetId,
+              'action': action,
+            }),
+          )
+          .timeout(_timeout);
+
+      print(
+          '🤖 ML Service: Interaction response status ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -111,7 +123,7 @@ class MLService {
           return true;
         }
       }
-      
+
       print('🤖 ML Service: Failed to record interaction');
       return false;
     } catch (e) {
@@ -125,7 +137,7 @@ class MLService {
     try {
       print('🔍 ML Service: Checking health at $_baseUrl/health');
       final url = Uri.parse('$_baseUrl/health');
-      
+
       final response = await http.get(
         url,
         headers: {'Accept': 'application/json'},
@@ -134,17 +146,21 @@ class MLService {
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final isHealthy = data['status'] == 'healthy';
-        
+
         if (isHealthy) {
-          print('✅ ML Service: Backend is healthy! Users in DB: ${data['users_in_database']}');
-          print('🚀 ML Service: ML recommendations ENABLED (v${data['version']})');
+          print(
+              '✅ ML Service: Backend is healthy! Users in DB: ${data['users_in_database']}');
+          print(
+              '🚀 ML Service: ML recommendations ENABLED (v${data['version']})');
         } else {
-          print('⚠️  ML Service: Backend responded but not healthy: ${data['status']}');
+          print(
+              '⚠️  ML Service: Backend responded but not healthy: ${data['status']}');
         }
-        
+
         return isHealthy;
       }
-      print('❌ ML Service: Health check failed with status ${response.statusCode}');
+      print(
+          '❌ ML Service: Health check failed with status ${response.statusCode}');
       return false;
     } catch (e) {
       print('❌ ML Service: Health check failed: $e');
@@ -156,7 +172,7 @@ class MLService {
   static Future<Map<String, dynamic>?> getUserStats(String userId) async {
     try {
       final url = Uri.parse('$_baseUrl/users/$userId/stats');
-      
+
       final response = await http.get(
         url,
         headers: {

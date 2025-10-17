@@ -21,7 +21,8 @@ class _HomePageState extends State<HomePage> {
   List<UserModel.User> users = [];
   bool isLoading = true;
   String? error;
-  bool useMLMatching = true; // ML SERVICE ENABLED - Toggle for ML-powered matching
+  bool useMLMatching =
+      true; // ML SERVICE ENABLED - Toggle for ML-powered matching
   final CardSwiperController controller = CardSwiperController();
 
   @override
@@ -29,7 +30,8 @@ class _HomePageState extends State<HomePage> {
     super.initState();
     print('🚀 ══════════════════════════════════════════════════════════════');
     print('🚀 PATRA APP STARTING - HOMEPAGE INITIALIZATION');
-    print('🤖 ML Recommendation System: ${useMLMatching ? 'ENABLED ✅' : 'DISABLED ❌'}');
+    print(
+        '🤖 ML Recommendation System: ${useMLMatching ? 'ENABLED ✅' : 'DISABLED ❌'}');
     print('🔥 Loading personalized user recommendations...');
     print('══════════════════════════════════════════════════════════════');
     _loadUsers();
@@ -42,14 +44,16 @@ class _HomePageState extends State<HomePage> {
         error = null;
       });
 
-      print('🏠 HomePage: Loading users with ML matching ${useMLMatching ? 'ENABLED' : 'DISABLED'}');
+      print(
+          '🏠 HomePage: Loading users with ML matching ${useMLMatching ? 'ENABLED' : 'DISABLED'}');
 
       // Use ML-powered matching when available
       final List<Map<String, dynamic>> usersData = useMLMatching
           ? await _cloudinaryService.getMLPoweredMatches(count: 20)
           : await _cloudinaryService.getUsersForMatching();
-      
-      print('🏠 HomePage: Received ${usersData.length} users from ${useMLMatching ? 'ML service' : 'regular matching'}');
+
+      print(
+          '🏠 HomePage: Received ${usersData.length} users from ${useMLMatching ? 'ML service' : 'regular matching'}');
 
       List<UserModel.User> loadedUsers = [];
 
@@ -106,13 +110,16 @@ class _HomePageState extends State<HomePage> {
         loadedUsers.add(user);
       }
 
-      print('🏠 HomePage: Successfully converted ${loadedUsers.length} users for display');
-      
+      print(
+          '🏠 HomePage: Successfully converted ${loadedUsers.length} users for display');
+
       if (useMLMatching && loadedUsers.isNotEmpty) {
-        print('🎉 ══════════════════════════════════════════════════════════════');
-        print('🤖 ML ALGORITHM CONFIRMED: Successfully loaded ML recommendations!');
+        print(
+            '🎉 ══════════════════════════════════════════════════════════════');
+        print(
+            '🤖 ML ALGORITHM CONFIRMED: Successfully loaded ML recommendations!');
         print('📱 USERS NOW DISPLAYED IN THE APP:');
-        
+
         for (int i = 0; i < loadedUsers.length && i < 8; i++) {
           final user = loadedUsers[i];
           print('   🔥 Card #${i + 1}: ${user.username} (${user.age} years)');
@@ -122,8 +129,9 @@ class _HomePageState extends State<HomePage> {
           print('      📸 Photos: ${user.photoUrls?.length ?? 0} uploaded');
           if (i < 3) print('      ─────────────────────────────────────');
         }
-        
-        print('🎯 Total ML-recommended profiles ready for swiping: ${loadedUsers.length}');
+
+        print(
+            '🎯 Total ML-recommended profiles ready for swiping: ${loadedUsers.length}');
         print('══════════════════════════════════════════════════════════════');
       } else if (!useMLMatching) {
         print('📋 Regular matching mode - ML disabled');
@@ -139,10 +147,11 @@ class _HomePageState extends State<HomePage> {
       print('❌ ══════════════════════════════════════════════════════════════');
       print('❌ ERROR: Failed to load users');
       print('🔍 Error details: $e');
-      print('💡 This might indicate ML service is down or Firebase connection issue');
+      print(
+          '💡 This might indicate ML service is down or Firebase connection issue');
       print('🔄 App will retry when user refreshes');
       print('══════════════════════════════════════════════════════════════');
-      
+
       setState(() {
         error = 'Failed to load users: $e';
         isLoading = false;
@@ -185,12 +194,13 @@ class _HomePageState extends State<HomePage> {
         } else {
           action = 'dislike';
         }
-        
+
         print('🎯 ═══ USER INTERACTION DETECTED ═══');
         print('👤 User Action: ${action.toUpperCase()}');
-        print('🎭 Target: ${users[index].username} (${users[index].age}) from ${users[index].location}');
+        print(
+            '🎭 Target: ${users[index].username} (${users[index].age}) from ${users[index].location}');
         print('🤖 Recording to ML backend for learning...');
-        
+
         // Record the interaction asynchronously (don't wait for it)
         final currentUser = FirebaseAuth.instance.currentUser;
         if (currentUser != null) {
@@ -199,12 +209,16 @@ class _HomePageState extends State<HomePage> {
             targetUserId,
             action,
           ).then((_) {
-            print('✅ ML Learning: Successfully recorded $action for ${users[index].username}');
-            print('🧠 Algorithm will improve future recommendations based on this preference');
-            print('═══════════════════════════════════════════════════════════');
+            print(
+                '✅ ML Learning: Successfully recorded $action for ${users[index].username}');
+            print(
+                '🧠 Algorithm will improve future recommendations based on this preference');
+            print(
+                '═══════════════════════════════════════════════════════════');
           }).catchError((e) {
             print('❌ ML Learning: Failed to record ML interaction: $e');
-            print('═══════════════════════════════════════════════════════════');
+            print(
+                '═══════════════════════════════════════════════════════════');
           });
         }
       }
