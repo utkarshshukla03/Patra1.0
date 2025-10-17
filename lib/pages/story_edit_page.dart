@@ -300,8 +300,7 @@ class _StoryEditPageState extends State<StoryEditPage> {
 
       Navigator.pop(context); // Close loading dialog
       Navigator.pop(context); // Go back to profile
-      Navigator.pop(context); // Close camera/edit flow
-
+      
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Story uploaded successfully!'),

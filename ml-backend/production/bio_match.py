@@ -2,11 +2,12 @@
 bio_match.py
 -----------------
 Handles semantic similarity and bio-based user matching using transformer embeddings.
+Updated to work with Firebase real-time data.
 
 Responsibilities:
 - Load and cache the SentenceTransformer model
 - Compute cosine similarity between user bios
-- Return top similar bios for a given user
+- Return top similar bios for a given user using Firebase data
 """
 
 import pandas as pd
@@ -14,6 +15,10 @@ from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 from functools import lru_cache
 from typing import Optional
+from production.firebase_service import get_firebase_service
+from production.logger import get_logger
+
+logger = get_logger(__name__)
 
 # ==========================================================
 # MODEL MANAGEMENT
@@ -101,6 +106,51 @@ def top_similar_bios(
     results["similarity"] = similarities[top_indices]
 
     return results[["user_id", "bio", "similarity"]]
+
+
+def top_similar_bios_firebase(
+    target_user_id: str,
+    top_n: int = 10,
+    model: Optional[SentenceTransformer] = None
+) -> pd.DataFrame:
+    """
+    Find top N users whose bios are semantically similar to the target user using Firebase data.
+
+    Args:
+        target_user_id (str): User ID of the target user.
+        top_n (int): Number of similar users to return.
+        model (SentenceTransformer, optional): Preloaded model.
+
+    Returns:
+        pd.DataFrame: DataFrame with ['user_id', 'bio', 'similarity'].
+    """
+    try:
+        firebase_service = get_firebase_service()
+        if not firebase_service.is_connected():
+            logger.error("Firebase not connected - cannot perform bio matching")
+            return pd.DataFrame()
+        
+        # Get all users from Firebase
+        users_df = firebase_service.get_all_users()
+        if users_df.empty:
+            logger.warning("No users found in Firebase")
+            return pd.DataFrame()
+        
+        # Ensure required columns exist
+        if 'bio' not in users_df.columns:
+            logger.warning("Bio column not found in user data")
+            users_df['bio'] = ""  # Add empty bio column
+        
+        # Use the existing function with Firebase data
+        # Rename 'id' column to 'user_id' for compatibility
+        if 'id' in users_df.columns and 'user_id' not in users_df.columns:
+            users_df = users_df.rename(columns={'id': 'user_id'})
+        
+        return top_similar_bios(users_df, target_user_id, top_n, model)
+        
+    except Exception as e:
+        logger.error(f"Error in Firebase bio matching: {e}")
+        return pd.DataFrame()
 
 
 # ==========================================================

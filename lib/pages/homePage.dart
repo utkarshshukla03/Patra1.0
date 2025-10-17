@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_card_swiper/flutter_card_swiper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lottie/lottie.dart';
 import 'package:patra_initial/pages/services/chat.dart';
 import '../models/user.dart' as UserModel;
 import '../services/cloudinary_service.dart';
+import '../services/ml_service.dart';
 import '../pages/profile_modal.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,13 +21,17 @@ class _HomePageState extends State<HomePage> {
   List<UserModel.User> users = [];
   bool isLoading = true;
   String? error;
-  // bool useMLMatching = true; // DISABLED ML SERVICE - Toggle for ML-powered matching
-  bool useMLMatching = false; // ML SERVICE DISABLED
+  bool useMLMatching = true; // ML SERVICE ENABLED - Toggle for ML-powered matching
   final CardSwiperController controller = CardSwiperController();
 
   @override
   void initState() {
     super.initState();
+    print('🚀 ══════════════════════════════════════════════════════════════');
+    print('🚀 PATRA APP STARTING - HOMEPAGE INITIALIZATION');
+    print('🤖 ML Recommendation System: ${useMLMatching ? 'ENABLED ✅' : 'DISABLED ❌'}');
+    print('🔥 Loading personalized user recommendations...');
+    print('══════════════════════════════════════════════════════════════');
     _loadUsers();
   }
 
@@ -36,12 +42,14 @@ class _HomePageState extends State<HomePage> {
         error = null;
       });
 
-      // DISABLED ML SERVICE - Use standard matching only
-      // final List<Map<String, dynamic>> usersData = useMLMatching
-      //     ? await _cloudinaryService.getMLPoweredMatches(count: 20)
-      //     : await _cloudinaryService.getUsersForMatching();
-      final List<Map<String, dynamic>> usersData =
-          await _cloudinaryService.getUsersForMatching();
+      print('🏠 HomePage: Loading users with ML matching ${useMLMatching ? 'ENABLED' : 'DISABLED'}');
+
+      // Use ML-powered matching when available
+      final List<Map<String, dynamic>> usersData = useMLMatching
+          ? await _cloudinaryService.getMLPoweredMatches(count: 20)
+          : await _cloudinaryService.getUsersForMatching();
+      
+      print('🏠 HomePage: Received ${usersData.length} users from ${useMLMatching ? 'ML service' : 'regular matching'}');
 
       List<UserModel.User> loadedUsers = [];
 
@@ -98,11 +106,43 @@ class _HomePageState extends State<HomePage> {
         loadedUsers.add(user);
       }
 
+      print('🏠 HomePage: Successfully converted ${loadedUsers.length} users for display');
+      
+      if (useMLMatching && loadedUsers.isNotEmpty) {
+        print('🎉 ══════════════════════════════════════════════════════════════');
+        print('🤖 ML ALGORITHM CONFIRMED: Successfully loaded ML recommendations!');
+        print('📱 USERS NOW DISPLAYED IN THE APP:');
+        
+        for (int i = 0; i < loadedUsers.length && i < 8; i++) {
+          final user = loadedUsers[i];
+          print('   🔥 Card #${i + 1}: ${user.username} (${user.age} years)');
+          print('      📍 Location: ${user.location ?? 'Unknown'}');
+          print('      💝 Interests: ${user.interests?.join(', ') ?? 'None'}');
+          print('      📱 Gender: ${user.gender ?? 'Not specified'}');
+          print('      📸 Photos: ${user.photoUrls?.length ?? 0} uploaded');
+          if (i < 3) print('      ─────────────────────────────────────');
+        }
+        
+        print('🎯 Total ML-recommended profiles ready for swiping: ${loadedUsers.length}');
+        print('══════════════════════════════════════════════════════════════');
+      } else if (!useMLMatching) {
+        print('📋 Regular matching mode - ML disabled');
+      } else {
+        print('⚠️  No ML recommendations available - check ML service');
+      }
+
       setState(() {
         users = loadedUsers;
         isLoading = false;
       });
     } catch (e) {
+      print('❌ ══════════════════════════════════════════════════════════════');
+      print('❌ ERROR: Failed to load users');
+      print('🔍 Error details: $e');
+      print('💡 This might indicate ML service is down or Firebase connection issue');
+      print('🔄 App will retry when user refreshes');
+      print('══════════════════════════════════════════════════════════════');
+      
       setState(() {
         error = 'Failed to load users: $e';
         isLoading = false;
@@ -128,19 +168,55 @@ class _HomePageState extends State<HomePage> {
       int index, CardSwiperDirection direction) async {
     if (index >= 0 && index < users.length) {
       final bool isLike = direction == CardSwiperDirection.right;
+      final bool isSuperLike = direction == CardSwiperDirection.top;
       final String targetUserId = users[index].uid;
 
       // Save the swipe action
       bool success =
           await _cloudinaryService.saveSwipeAction(targetUserId, isLike);
 
-      if (success && isLike) {
-        // Show a quick animation or message for likes
+      // Record interaction for ML learning
+      if (useMLMatching) {
+        String action;
+        if (isSuperLike) {
+          action = 'superlike';
+        } else if (isLike) {
+          action = 'like';
+        } else {
+          action = 'dislike';
+        }
+        
+        print('🎯 ═══ USER INTERACTION DETECTED ═══');
+        print('👤 User Action: ${action.toUpperCase()}');
+        print('🎭 Target: ${users[index].username} (${users[index].age}) from ${users[index].location}');
+        print('🤖 Recording to ML backend for learning...');
+        
+        // Record the interaction asynchronously (don't wait for it)
+        final currentUser = FirebaseAuth.instance.currentUser;
+        if (currentUser != null) {
+          MLService.recordInteraction(
+            currentUser.uid, // current user ID from Firebase Auth
+            targetUserId,
+            action,
+          ).then((_) {
+            print('✅ ML Learning: Successfully recorded $action for ${users[index].username}');
+            print('🧠 Algorithm will improve future recommendations based on this preference');
+            print('═══════════════════════════════════════════════════════════');
+          }).catchError((e) {
+            print('❌ ML Learning: Failed to record ML interaction: $e');
+            print('═══════════════════════════════════════════════════════════');
+          });
+        }
+      }
+
+      if (success && (isLike || isSuperLike)) {
+        // Show a quick animation or message for likes/superlikes
+        final actionText = isSuperLike ? 'super liked' : 'liked';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('You liked ${users[index].username}!'),
+            content: Text('You $actionText ${users[index].username}!'),
             duration: Duration(seconds: 1),
-            backgroundColor: Colors.green,
+            backgroundColor: isSuperLike ? Colors.blue : Colors.green,
           ),
         );
       }
@@ -535,6 +611,40 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               ),
+
+              // ML recommendation badge (top left)
+              if (useMLMatching)
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.purple.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white.withOpacity(0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.psychology,
+                          color: Colors.white,
+                          size: 12,
+                        ),
+                        SizedBox(width: 4),
+                        Text(
+                          'AI Pick',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
             ],
           ),
         ),

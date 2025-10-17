@@ -4,7 +4,7 @@ elo_update.py
 Purpose:
     Maintain and update dynamic Elo ratings for users based on interactions
     (like / superlike / reject). Works in tandem with recommender and
-    interaction modules.
+    interaction modules. Updated to use Firebase real-time data.
 
 Integration Order:
     Runs AFTER:
@@ -17,12 +17,13 @@ import pandas as pd
 from functools import lru_cache
 from production.config_loader import load_config
 from production.logger import get_logger
+from production.firebase_service import get_firebase_service
 
 # -------------------- INIT --------------------
 logger = get_logger(__name__)
 config = load_config()
+firebase_service = get_firebase_service()
 
-USERS_CSV = config["paths"]["users_csv"]
 K = config.get("elo_k", 32)
 
 # Default action scoring
@@ -49,60 +50,113 @@ def update_elo_score(rating_a: float, rating_b: float, score_a: float, score_b: 
 
 
 # -------------------- DATA LOADING --------------------
-@lru_cache(maxsize=1)
 def load_users() -> pd.DataFrame:
-    """Load users and ensure Elo column exists."""
-    users = pd.read_csv(USERS_CSV)
-    if "elo" not in users.columns:
-        users["elo"] = 1500  # default Elo
-    if "user_id" not in users.columns:
-        raise ValueError("users.csv must contain 'user_id' column.")
-    return users
+    """Load users from Firebase and ensure Elo column exists."""
+    try:
+        if not firebase_service.is_connected():
+            logger.error("Firebase not connected")
+            return pd.DataFrame()
+        
+        users = firebase_service.get_all_users()
+        if users.empty:
+            return pd.DataFrame()
+        
+        # Ensure required columns exist
+        if "elo_score" not in users.columns:
+            users["elo_score"] = 1200  # default Elo
+        if "id" not in users.columns:
+            raise ValueError("Firebase users must contain 'id' field.")
+        
+        # Rename for compatibility
+        users = users.rename(columns={'id': 'user_id', 'elo_score': 'elo'})
+        return users
+        
+    except Exception as e:
+        logger.error(f"Error loading users from Firebase: {e}")
+        return pd.DataFrame()
 
 
 # -------------------- CORE FUNCTIONS --------------------
 def process_interaction(user_id: str, target_id: str, action: str):
     """
-    Update Elo ratings for two users based on a single interaction.
+    Update Elo ratings for two users based on a single interaction using Firebase.
 
     Args:
         user_id: Active user performing the action.
         target_id: Target user receiving the action.
         action: Action type (like, superlike, reject).
     """
-    users = load_users()
-
-    # Validate users exist
-    if user_id not in users["user_id"].values:
-        logger.warning(f"User {user_id} not found.")
-        return
-    if target_id not in users["user_id"].values:
-        logger.warning(f"Target {target_id} not found.")
-        return
-
-    # Get current ratings
-    ua = users.loc[users["user_id"] == user_id].iloc[0]
-    ub = users.loc[users["user_id"] == target_id].iloc[0]
-
-    Ra, Rb = ua["elo"], ub["elo"]
-
-    # Determine scores
-    Sa, Sb = ACTION_SCORES.get(action.lower(), (0, 0))
-
-    # Update Elo
-    new_a, new_b = update_elo_score(Ra, Rb, Sa, Sb)
-    users.loc[users["user_id"] == user_id, "elo"] = new_a
-    users.loc[users["user_id"] == target_id, "elo"] = new_b
-
-    # Save updated Elo ratings
-    users.to_csv(USERS_CSV, index=False)
-    logger.info(f"Updated Elo → {user_id}: {new_a:.1f}, {target_id}: {new_b:.1f}")
+    # Use the Firebase version
+    process_interaction_firebase(user_id, target_id, action)
 
 
 def get_elo_scores() -> pd.DataFrame:
-    """Return current Elo scores for all users (for recommender)."""
-    users = load_users()
-    return users[["user_id", "elo"]].copy()
+    """Return current Elo scores for all users from Firebase."""
+    return get_elo_scores_firebase()
+
+
+def process_interaction_firebase(user_id: str, target_id: str, action: str):
+    """
+    Update Elo ratings for two users based on a single interaction using Firebase.
+
+    Args:
+        user_id: Active user performing the action.
+        target_id: Target user receiving the action.
+        action: Action type (like, superlike, reject).
+    """
+    try:
+        if not firebase_service.is_connected():
+            logger.error("Firebase not connected - cannot update Elo scores")
+            return
+        
+        # Get current Elo scores
+        user_elo = firebase_service.get_user_elo_score(user_id)
+        target_elo = firebase_service.get_user_elo_score(target_id)
+        
+        if user_elo is None or target_elo is None:
+            logger.warning(f"Could not get Elo scores for users {user_id}, {target_id}")
+            return
+        
+        # Determine scores
+        Sa, Sb = ACTION_SCORES.get(action.lower(), (0, 0))
+        
+        # Update Elo
+        new_user_elo, new_target_elo = update_elo_score(user_elo, target_elo, Sa, Sb)
+        
+        # Save updated Elo ratings to Firebase
+        firebase_service.update_user_elo_score(user_id, new_user_elo)
+        firebase_service.update_user_elo_score(target_id, new_target_elo)
+        
+        logger.info(f"Updated Elo → {user_id}: {new_user_elo:.1f}, {target_id}: {new_target_elo:.1f}")
+        
+    except Exception as e:
+        logger.error(f"Error updating Elo scores: {e}")
+
+
+def get_elo_scores_firebase() -> pd.DataFrame:
+    """Return current Elo scores for all users from Firebase."""
+    try:
+        if not firebase_service.is_connected():
+            logger.error("Firebase not connected")
+            return pd.DataFrame()
+        
+        users_df = firebase_service.get_all_users()
+        if users_df.empty:
+            return pd.DataFrame()
+        
+        # Ensure elo_score column exists
+        if 'elo_score' not in users_df.columns:
+            users_df['elo_score'] = 1200  # Default Elo
+        
+        # Return with consistent column names
+        result_df = users_df[['id', 'elo_score']].copy()
+        result_df = result_df.rename(columns={'id': 'user_id', 'elo_score': 'elo'})
+        
+        return result_df
+        
+    except Exception as e:
+        logger.error(f"Error getting Elo scores from Firebase: {e}")
+        return pd.DataFrame()
 
 
 # -------------------- STANDALONE TEST --------------------

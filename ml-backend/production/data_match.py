@@ -1,9 +1,10 @@
 import pandas as pd
 import numpy as np
 from production.logger import get_logger
-from production.utils import load_csv_safe
+from production.firebase_service import get_firebase_service
+from datetime import datetime
 
-logger = get_logger()
+logger = get_logger(__name__)
 
 # -----------------------------------------
 # Jaccard similarity between list-like fields
