@@ -9,6 +9,13 @@ api_keys.env
 .env.*.local
 **/*.env
 
+# ML Backend virtual environment (contains large PyTorch files)
+ml-backend/ml_env/
+ml-backend/venv/
+**/ml_env/
+**/venv/
+**/__pycache__/
+
 # Firebase sensitive files
 **/firebase-service-account.json
 **/google-services.json
