@@ -411,24 +411,6 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
 
-              // Profile info button - positioned at top right
-              Positioned(
-                top: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Icon(
-                    Icons.info_outline,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
-              ),
-
               // Gradient overlay for text readability
               Positioned(
                 left: 0,
