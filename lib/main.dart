@@ -4,6 +4,7 @@ import 'firebase_options.dart';
 import 'pages/auth/loginPage.dart';
 import 'services/config_service.dart';
 import 'services/story_service.dart';
+import 'widgets/match_notification_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,7 +66,9 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Patra',
       theme: ThemeData(primarySwatch: Colors.grey),
-      home: LoginPage(),
+      home: MatchNotificationHandler(
+        child: LoginPage(),
+      ),
     );
   }
 }

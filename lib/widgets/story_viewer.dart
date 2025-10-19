@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../models/story_map.dart';
+import '../utils/text_utils.dart';
 
 class StoryViewer extends StatefulWidget {
   final List<UserStory> stories;
@@ -261,7 +262,7 @@ class _StoryViewerState extends State<StoryViewer>
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  story.username,
+                  TextUtils.formatUsername(story.username),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 16,

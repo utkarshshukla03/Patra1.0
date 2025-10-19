@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/story.dart';
 import '../services/story_service.dart';
+import '../utils/text_utils.dart';
 
 class StoryViewerPage extends StatefulWidget {
   final Story story;
@@ -135,7 +136,7 @@ class _StoryViewerPageState extends State<StoryViewerPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.story.username,
+                          TextUtils.formatUsername(widget.story.username),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 14,

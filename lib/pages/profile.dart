@@ -10,6 +10,8 @@ import '../services/story_service.dart';
 import '../pages/story_viewer_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/story_camera_page.dart';
+import '../pages/services/share.dart';
+import '../utils/text_utils.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -362,35 +364,14 @@ class _ProfilePageState extends State<ProfilePage> {
 
           // User info
           Text(
-            currentUser?.username ?? 'Username',
+            TextUtils.formatUsername(currentUser?.username),
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
               color: Colors.black87,
             ),
           ),
-          if (currentUser?.age != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              '${currentUser!.age} years old',
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-          if (currentUser?.bio?.isNotEmpty == true) ...[
-            const SizedBox(height: 8),
-            Text(
-              currentUser!.bio!,
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.black54,
-                height: 1.4,
-              ),
-            ),
-          ],
+
           const SizedBox(height: 20),
 
           // Action buttons
@@ -406,6 +387,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     side: const BorderSide(color: Color(0xFF6C5CE7)),
+                    backgroundColor: Color(0xFF6C5CE7),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
@@ -413,7 +395,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   child: const Text(
                     'Edit Profile',
                     style: TextStyle(
-                      color: Color(0xFF6C5CE7),
+                      color: Color(0xFFFFFFFF),
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -423,7 +405,12 @@ class _ProfilePageState extends State<ProfilePage> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Implement share profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ShareProfile(),
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),

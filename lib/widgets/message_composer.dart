@@ -3,10 +3,14 @@ import '../models/chat_message.dart';
 
 class MessageComposer extends StatefulWidget {
   final Function(String content, MessageType type) onSendMessage;
+  final Function(String text)? onTextChanged;
+  final TextEditingController? controller;
 
   const MessageComposer({
     super.key,
     required this.onSendMessage,
+    this.onTextChanged,
+    this.controller,
   });
 
   @override
@@ -14,24 +18,28 @@ class MessageComposer extends StatefulWidget {
 }
 
 class _MessageComposerState extends State<MessageComposer> {
-  final TextEditingController _textController = TextEditingController();
+  late TextEditingController _textController;
   bool _isRecording = false;
   bool _hasText = false;
 
   @override
   void initState() {
     super.initState();
+    _textController = widget.controller ?? TextEditingController();
     _textController.addListener(() {
       setState(() {
         _hasText = _textController.text.trim().isNotEmpty;
       });
+      // Call the text changed callback if provided
+      widget.onTextChanged?.call(_textController.text);
     });
   }
 
   void _sendTextMessage() {
     if (_textController.text.trim().isNotEmpty) {
-      widget.onSendMessage(_textController.text.trim(), MessageType.text);
-      _textController.clear();
+      final message = _textController.text.trim();
+      _textController.clear(); // Clear before sending for better UX
+      widget.onSendMessage(message, MessageType.text);
     }
   }
 
@@ -172,7 +180,10 @@ class _MessageComposerState extends State<MessageComposer> {
 
   @override
   void dispose() {
-    _textController.dispose();
+    // Only dispose if we created the controller
+    if (widget.controller == null) {
+      _textController.dispose();
+    }
     super.dispose();
   }
 }

@@ -10,6 +10,8 @@ import '../services/story_service.dart';
 import '../pages/story_viewer_page.dart';
 import '../pages/settings_page.dart';
 import '../pages/story_camera_page.dart';
+import '../pages/services/share.dart';
+import '../utils/text_utils.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -357,7 +359,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
           // User info
           Text(
-            currentUser?.username ?? 'Username',
+            TextUtils.formatUsername(currentUser?.username),
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -418,7 +420,12 @@ class _ProfilePageState extends State<ProfilePage> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {
-                    // TODO: Implement share profile
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ShareProfile(),
+                      ),
+                    );
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 12),

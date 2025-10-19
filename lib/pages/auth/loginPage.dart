@@ -250,28 +250,27 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
             children: [
               // Name
               SizedBox(
-                height: 50,
+                height: 80,
               ),
               Text(
                 'Patra',
                 style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontStyle: FontStyle.italic,
                     fontSize: 50.0,
-                    fontFamily: 'StyleScript'),
+                    fontFamily: 'Ginger',
+                    fontWeight: FontWeight.bold),
               ),
               // SizedBox(height: 10),
 
               // image
               Container(
-                height: 200,
+                height: 300,
                 child: Image.asset(
                   'assets/Talk.webp',
                   fit: BoxFit.contain,
                   errorBuilder: (context, error, stackTrace) {
                     print('Asset loading error: $error');
                     return Container(
-                      height: 200,
+                      height: 250,
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -282,8 +281,9 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                           ),
                           SizedBox(height: 8),
                           Text(
-                            'Patra Dating',
+                            'Patra',
                             style: TextStyle(
+                              fontFamily: 'Ginger',
                               fontSize: 16,
                               color: Colors.grey[600],
                             ),
@@ -510,7 +510,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
                 ),
               ),
 
-              SizedBox(height: 100),
+              SizedBox(height: 150),
               // Not a member?SignUp
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

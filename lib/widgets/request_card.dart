@@ -55,17 +55,8 @@ class _RequestCardState extends State<RequestCard>
   }
 
   void _handleAccept() async {
-    // Navigate to chat thread
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatThreadPage(
-          chatId: 'chat_${widget.request.id}',
-          otherUserName: widget.request.fromUserName,
-          otherUserPhoto: widget.request.fromUserPhoto,
-        ),
-      ),
-    );
+    // Call the parent's accept handler which will create a match
+    // The parent (chat.dart) handles match creation and navigation
     widget.onAccept();
   }
 

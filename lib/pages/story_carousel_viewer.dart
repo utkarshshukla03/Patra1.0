@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../models/story.dart';
 import '../services/story_service.dart';
+import '../utils/text_utils.dart';
 
 class StoryCarouselViewer extends StatefulWidget {
   final List<Story> stories;
@@ -26,12 +27,6 @@ class _StoryCarouselViewerState extends State<StoryCarouselViewer>
   late AnimationController _progressController;
   bool _isDeleting = false;
   static const Duration _storyDuration = Duration(seconds: 5);
-
-  // Helper function to capitalize first letter of a string
-  String _capitalizeFirstLetter(String text) {
-    if (text.isEmpty) return text;
-    return text[0].toUpperCase() + text.substring(1).toLowerCase();
-  }
 
   @override
   void initState() {
@@ -351,7 +346,7 @@ class _StoryCarouselViewerState extends State<StoryCarouselViewer>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _capitalizeFirstLetter(currentStory.username),
+                    TextUtils.formatUsername(currentStory.username),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 14,

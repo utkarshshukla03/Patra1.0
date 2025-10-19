@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/user.dart' as UserModel;
+import '../utils/text_utils.dart';
 
 class ProfileModal extends StatefulWidget {
   final String? userId; // For request users
@@ -56,7 +57,7 @@ class _ProfileModalState extends State<ProfileModal> {
     if (widget.user != null) {
       // HomePage user
       return {
-        'name': widget.user!.username,
+        'name': TextUtils.formatUsername(widget.user!.username),
         'age': widget.user!.calculatedAge,
         'bio': widget.user!.bio ?? 'No bio available',
         'interests': widget.user!.interests ?? [],

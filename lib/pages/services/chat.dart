@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/like_request.dart';
+import '../../models/match.dart';
 import '../../widgets/requests_list.dart';
 import '../../services/requests_service.dart';
+import '../../services/matches_service.dart';
+import '../../services/like_service.dart';
+import '../chat_thread_page.dart';
 
 class Chat extends StatefulWidget {
   const Chat({super.key});
@@ -14,20 +18,29 @@ class Chat extends StatefulWidget {
 class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   List<LikeRequest> _requests = [];
-  List<Map<String, dynamic>> _matches = [];
+  List<Match> _matches = [];
   bool _isLoadingRequests = false;
+
+  // Add stream subscriptions for cleanup
+  Stream<List<Match>>? _matchesStream;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
 
-    // Listen to tab changes to refresh data when switching to requests tab
+    // Listen to tab changes to refresh data when switching tabs
     _tabController.addListener(() {
-      if (_tabController.indexIsChanging && _tabController.index == 0) {
-        // User switched to requests tab
-        print('🔄 User switched to requests tab, refreshing...');
-        _loadRequests();
+      if (_tabController.indexIsChanging) {
+        if (_tabController.index == 0) {
+          // User switched to requests tab
+          print('🔄 User switched to requests tab, refreshing...');
+          _loadRequests();
+        } else if (_tabController.index == 1) {
+          // User switched to matches tab
+          print('🔄 User switched to matches tab, refreshing...');
+          _loadMatches();
+        }
       }
     });
 
@@ -37,108 +50,105 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
       _loadMatches();
     });
 
-    // Refresh requests every 30 seconds to simulate real-time updates
-    _startPeriodicRefresh();
+    // No periodic refresh needed - everything is real-time now!
   }
 
-  void _startPeriodicRefresh() {
-    Future.delayed(const Duration(seconds: 30), () {
-      if (mounted) {
-        _refreshRequests();
-        _startPeriodicRefresh();
-      }
-    });
-  }
-
-  Future<void> _refreshRequests() async {
-    _loadRequests();
-  }
-
-  void _loadRequests() async {
-    if (_isLoadingRequests) return; // Prevent multiple simultaneous loads
+  void _loadRequests() {
+    print('🔄 Setting up real-time requests stream...');
 
     setState(() {
       _isLoadingRequests = true;
     });
 
-    try {
-      print('🔄 Loading requests...');
+    // Set up real-time stream for like requests
+    LikeService.getLikesReceived().listen(
+      (likesData) {
+        final requests = likesData.map((likeData) {
+          return LikeRequest.fromFirestore(likeData, likeData['id']);
+        }).toList();
 
-      // Get current user UID
-      final currentUser = FirebaseAuth.instance.currentUser;
-      final userUID = currentUser?.uid ??
-          'HfdoBOlYEBO54oUpaSqPTf5ML452'; // Default for testing
+        print('📦 Received ${requests.length} real-time requests');
 
-      print('👤 Current user UID: $userUID');
-
-      // Load requests from service using UID instead of email
-      final requestsData =
-          await RequestsService.getTestRequestsForUser(userUID);
-
-      print('📦 Received ${requestsData.length} requests from service');
-
-      // Convert to LikeRequest objects
-      final requests = requestsData.map((data) {
-        print('🔍 Processing request data: ${data.keys.toList()}');
-        return LikeRequest(
-          id: data['id'],
-          fromUserId: data['fromUserId'],
-          fromUserName: data['userInfo']['name'],
-          fromUserPhoto: data['userInfo']['photo'],
-          fromUserAge: data['userInfo']['age'] ?? 22,
-          fromUserBio: data['userInfo']['bio'],
-          type: data['type'] == 'superlike'
-              ? RequestType.superlike
-              : RequestType.like,
-          timestamp: data['timestamp'],
-          fullUserData: data['userInfo'], // Pass complete user data
-        );
-      }).toList();
-
-      print('✅ Successfully processed ${requests.length} requests');
-
-      setState(() {
-        _requests = requests;
-        _isLoadingRequests = false;
-      });
-    } catch (e) {
-      print('❌ Error loading requests: $e');
-      // Fallback to mock data
-      setState(() {
-        _requests = LikeRequest.getMockRequests();
-        _isLoadingRequests = false;
-      });
-    }
+        if (mounted) {
+          setState(() {
+            _requests = requests;
+            _isLoadingRequests = false;
+          });
+        }
+      },
+      onError: (error) {
+        print('❌ Error loading requests stream: $error');
+        if (mounted) {
+          setState(() {
+            _requests = [];
+            _isLoadingRequests = false;
+          });
+        }
+      },
+    );
   }
 
   void _loadMatches() {
-    setState(() {
-      _matches = [
-        {
-          'id': '1',
-          'name': 'Sarah',
-          'photo':
-              'https://images.unsplash.com/photo-1494790108755-2616b67fcec?w=400',
-          'lastMessage': 'Hey! Thanks for the like! 😊',
-          'timestamp': DateTime.now().subtract(Duration(minutes: 30)),
-          'unread': true,
-        },
-        {
-          'id': '2',
-          'name': 'Jessica',
-          'photo':
-              'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400',
-          'lastMessage': 'Would love to grab coffee sometime!',
-          'timestamp': DateTime.now().subtract(Duration(hours: 2)),
-          'unread': false,
-        },
-      ];
+    // Set up the real-time matches stream
+    _matchesStream = MatchesService.getUserMatches();
+    _matchesStream!.listen((matches) {
+      if (mounted) {
+        setState(() {
+          _matches = matches;
+        });
+      }
+    }, onError: (error) {
+      print('❌ Error loading matches: $error');
+      // Fallback to empty list if Firebase fails
+      if (mounted) {
+        setState(() {
+          _matches = [];
+        });
+      }
     });
   }
 
-  void _onAcceptRequest(String requestId) {
-    print('Accepted request: $requestId');
-    // In real app, this would create a match and start a chat
+  void _onAcceptRequest(String requestId) async {
+    print('🎉 Accepting request: $requestId');
+
+    // Find the request being accepted
+    final request = _requests.firstWhere((req) => req.id == requestId);
+
+    // Create the match using MatchesService
+    final success = await MatchesService.createMatch(request);
+
+    if (success) {
+      print('✅ Match created successfully!');
+
+      // Remove the accepted request from the requests list
+      setState(() {
+        _requests.removeWhere((req) => req.id == requestId);
+      });
+
+      // The matches list will automatically update due to the real-time listener
+
+      // Show success message
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ You matched with ${request.fromUserName}!'),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } else {
+      print('❌ Failed to create match');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ Failed to create match. Try again.'),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    }
   }
 
   void _onDismissRequest(String requestId) {
@@ -168,10 +178,11 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
               color: Colors.black,
             ),
             onPressed: () {
-              _refreshRequests();
+              // No need to refresh - real-time streams automatically update
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
-                  content: Text('Refreshing requests...'),
+                  content:
+                      Text('Real-time updates active - no refresh needed!'),
                   duration: Duration(seconds: 1),
                 ),
               );
@@ -189,10 +200,11 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
               final success =
                   await RequestsService.createUnnatiLikesUtkarshTest();
               if (success) {
-                _refreshRequests();
+                // Real-time stream will automatically update the UI
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('✅ Test: Unnati liked Utkarsh!'),
+                    content: Text(
+                        '✅ Test: Unnati liked Utkarsh! Watch for real-time update...'),
                     duration: Duration(seconds: 2),
                     backgroundColor: Colors.green,
                   ),
@@ -212,6 +224,7 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
             ),
             child: TabBar(
               controller: _tabController,
+              isScrollable: false, // Ensure tabs take equal width
               indicator: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(25),
@@ -263,7 +276,35 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
                     ],
                   ),
                 ),
-                const Tab(text: 'Matches'),
+                Tab(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Matches'),
+                      if (_matches.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade500,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_matches.length}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -355,7 +396,13 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
     );
   }
 
-  Widget _buildMatchCard(Map<String, dynamic> match) {
+  Widget _buildMatchCard(Match match) {
+    // Get the other user's data (not the current user)
+    final currentUser = FirebaseAuth.instance.currentUser;
+    final isCurrentUserUser1 = currentUser?.uid == match.user1Id;
+    final otherUserData =
+        isCurrentUserUser1 ? match.user2Data : match.user1Data;
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
@@ -375,9 +422,12 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
           children: [
             CircleAvatar(
               radius: 28,
-              backgroundImage: NetworkImage(match['photo']),
+              backgroundImage: NetworkImage(otherUserData['photo'] ??
+                  'https://via.placeholder.com/400x600?text=No+Image'),
             ),
-            if (match['unread'])
+            // Show unread indicator if there's a recent message
+            if (match.lastMessageAt != null &&
+                DateTime.now().difference(match.lastMessageAt!).inMinutes < 60)
               Positioned(
                 right: 0,
                 top: 0,
@@ -394,14 +444,14 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
           ],
         ),
         title: Text(
-          match['name'],
+          otherUserData['name'] ?? 'Unknown User',
           style: const TextStyle(
             fontWeight: FontWeight.w600,
             fontSize: 16,
           ),
         ),
         subtitle: Text(
-          match['lastMessage'],
+          match.lastMessage ?? 'You matched! Start a conversation.',
           style: TextStyle(
             color: Colors.grey.shade600,
             fontSize: 14,
@@ -410,18 +460,28 @@ class _ChatState extends State<Chat> with SingleTickerProviderStateMixin {
           overflow: TextOverflow.ellipsis,
         ),
         trailing: Text(
-          _formatTimestamp(match['timestamp']),
+          _formatTimestamp(match.lastMessageAt ?? match.matchedAt),
           style: TextStyle(
             color: Colors.grey.shade500,
             fontSize: 12,
           ),
         ),
         onTap: () {
-          // Navigate to chat thread (mock)
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Opening chat with ${match['name']}'),
-              behavior: SnackBarBehavior.floating,
+          // Navigate to chat thread with real match data
+          final currentUser = FirebaseAuth.instance.currentUser;
+          final otherUserId =
+              match.user1Id == currentUser?.uid ? match.user2Id : match.user1Id;
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatThreadPage(
+                matchId: match.id,
+                otherUserId: otherUserId,
+                otherUserName: otherUserData['name'] ?? 'Unknown User',
+                otherUserPhoto: otherUserData['photo'] ??
+                    'https://via.placeholder.com/400x600?text=No+Image',
+              ),
             ),
           );
         },

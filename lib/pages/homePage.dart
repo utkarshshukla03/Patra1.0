@@ -6,8 +6,10 @@ import 'package:lottie/lottie.dart';
 import 'package:patra_initial/pages/services/chat.dart';
 import '../models/user.dart' as UserModel;
 import '../services/cloudinary_service.dart';
+import '../services/like_service.dart';
 import '../services/ml_service.dart';
 import '../pages/profile_modal.dart';
+import '../utils/text_utils.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -139,8 +141,28 @@ class _HomePageState extends State<HomePage> {
         print('⚠️  No ML recommendations available - check ML service');
       }
 
+      // Filter out users that have already been swiped (parallel processing for performance)
+      print(
+          '🔍 Filtering ${loadedUsers.length} users to remove already swiped...');
+
+      final List<Future<bool>> swipeChecks = loadedUsers
+          .map((user) => LikeService.hasAlreadySwiped(user.uid))
+          .toList();
+
+      final List<bool> swipeResults = await Future.wait(swipeChecks);
+
+      List<UserModel.User> filteredUsers = [];
+      for (int i = 0; i < loadedUsers.length; i++) {
+        if (!swipeResults[i]) {
+          filteredUsers.add(loadedUsers[i]);
+        }
+      }
+
+      print(
+          '📊 Filtered to ${filteredUsers.length} unswipped users out of ${loadedUsers.length} total');
+
       setState(() {
-        users = loadedUsers;
+        users = filteredUsers;
         isLoading = false;
       });
     } catch (e) {
@@ -159,11 +181,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // Refresh data by reloading
-  Future<void> _refreshUsers() async {
-    await _loadUsers();
-  }
-
   bool _onSwipe(
     int previousIndex,
     int? currentIndex,
@@ -178,11 +195,18 @@ class _HomePageState extends State<HomePage> {
     if (index >= 0 && index < users.length) {
       final bool isLike = direction == CardSwiperDirection.right;
       final bool isSuperLike = direction == CardSwiperDirection.top;
+      final bool isDislike = direction == CardSwiperDirection.left;
       final String targetUserId = users[index].uid;
 
-      // Save the swipe action
-      bool success =
-          await _cloudinaryService.saveSwipeAction(targetUserId, isLike);
+      // Save the swipe action using new LikeService
+      bool success = false;
+      if (isSuperLike) {
+        success = await LikeService.sendSuperLike(targetUserId);
+      } else if (isLike) {
+        success = await LikeService.sendLike(targetUserId);
+      } else if (isDislike) {
+        success = await LikeService.sendDislike(targetUserId);
+      }
 
       // Record interaction for ML learning
       if (useMLMatching) {
@@ -244,60 +268,82 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: Text(
-          'Patra',
-          style: TextStyle(
-            color: const Color.fromARGB(255, 13, 13, 13),
-            fontWeight: FontWeight.bold,
-            // fontStyle: FontStyle.italic,
-            fontSize: 36,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 80, // Increased height for more space
+        flexibleSpace: SafeArea(
+          child: Container(
+            padding: EdgeInsets.only(top: 16), // Safe area padding
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Empty left side for spacing
+                SizedBox(width: 48),
+                // Center content (logo + title)
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      child: Image.asset(
+                        'assets/Patra_logo.png',
+                        width: 28,
+                        height: 28,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Error loading Patra logo: $error');
+                          return Icon(Icons.favorite,
+                              size: 28, color: Colors.red);
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Patra',
+                      style: TextStyle(
+                        fontFamily: 'Ginger',
+                        color: const Color.fromARGB(255, 13, 13, 13),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 28,
+                      ),
+                    ),
+                  ],
+                ),
+                // Right side (chat icon)
+                Container(
+                  margin: EdgeInsets.only(right: 8),
+                  child: IconButton(
+                    icon: Container(
+                      width: 24,
+                      height: 24,
+                      child: Image.asset(
+                        'assets/chat_icon.png',
+                        width: 24,
+                        height: 24,
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          print('Error loading chat icon: $error');
+                          return Icon(
+                            Icons.chat_bubble,
+                            size: 24,
+                            color: Color.fromARGB(255, 134, 166, 226),
+                          );
+                        },
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => Chat()),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        centerTitle: true,
-        actions: [
-          // ML Toggle button - DISABLED
-          // IconButton(
-          //   icon: Icon(
-          //     useMLMatching ? Icons.psychology : Icons.people,
-          //     color: useMLMatching
-          //         ? Colors.purple
-          //         : Color.fromARGB(255, 134, 166, 226),
-          //   ),
-          //   onPressed: () {
-          //     setState(() {
-          //       useMLMatching = !useMLMatching;
-          //     });
-          //     _refreshUsers();
-          //     ScaffoldMessenger.of(context).showSnackBar(
-          //       SnackBar(
-          //         content: Text(useMLMatching
-          //             ? '🤖 ML-Powered Matching Enabled'
-          //             : '👥 Standard Matching Enabled'),
-          //         duration: Duration(seconds: 2),
-          //       ),
-          //     );
-          //   },
-          //   tooltip:
-          //       useMLMatching ? 'Using ML matching' : 'Using standard matching',
-          // ),
-          // Refresh button
-          IconButton(
-            icon:
-                Icon(Icons.refresh, color: Color.fromARGB(255, 134, 166, 226)),
-            onPressed: isLoading ? null : _refreshUsers,
-            tooltip: 'Refresh profiles',
-          ),
-          IconButton(
-            icon: Icon(Icons.chat_bubble,
-                color: Color.fromARGB(255, 134, 166, 226)),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => Chat()),
-              );
-            },
-          ),
-        ],
       ),
       body: SafeArea(
         child: _buildBody(),
@@ -319,10 +365,7 @@ class _HomePageState extends State<HomePage> {
             ),
             SizedBox(height: 16),
             Text(
-              // useMLMatching
-              //     ? 'Finding your perfect matches with AI...'
-              //     : 'Finding amazing people...',
-              'Finding amazing people...', // ML SERVICE DISABLED
+              'Finding amazing people...',
               style: TextStyle(
                 color: Colors.pink.shade700,
                 fontSize: 16,
@@ -331,9 +374,6 @@ class _HomePageState extends State<HomePage> {
             ),
             SizedBox(height: 8),
             Text(
-              // useMLMatching
-              //     ? '🤖 AI analyzing compatibility...'
-              //     : '✨ Discovering your perfect matches',
               '✨ Discovering your perfect matches', // ML SERVICE DISABLED
               style: TextStyle(
                 color: Colors.pink.shade400,
@@ -409,44 +449,38 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    return Stack(
-      children: [
-        Container(
-          margin: EdgeInsets.only(bottom: 120), // Add margin for navbar
-          child: Center(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: users.isNotEmpty && users.length > 0
-                  ? CardSwiper(
-                      controller: controller,
-                      cardsCount: users.length,
-                      onSwipe: _onSwipe,
-                      cardBuilder: (context, index, horizontalThreshold,
-                          verticalThreshold) {
-                        return _buildUserCard(
-                            users[index], horizontalThreshold);
-                      },
-                      isLoop: false,
-                      allowedSwipeDirection: AllowedSwipeDirection.symmetric(
-                        horizontal: true,
-                      ),
-                    )
-                  : Center(
-                      child: Text(
-                        'No profiles available',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.grey[600],
-                        ),
-                      ),
+    return Container(
+      margin:
+          EdgeInsets.only(bottom: 80), // Reduced margin since no action buttons
+      child: Center(
+        child: Padding(
+          padding: EdgeInsets.all(12), // Reduced padding for larger cards
+          child: users.isNotEmpty && users.length > 0
+              ? CardSwiper(
+                  controller: controller,
+                  cardsCount: users.length,
+                  onSwipe: _onSwipe,
+                  cardBuilder:
+                      (context, index, horizontalThreshold, verticalThreshold) {
+                    return _buildUserCard(users[index], horizontalThreshold);
+                  },
+                  isLoop: false,
+                  allowedSwipeDirection: AllowedSwipeDirection.symmetric(
+                    horizontal: true,
+                    vertical: true,
+                  ),
+                )
+              : Center(
+                  child: Text(
+                    'No profiles available',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.grey[600],
                     ),
-            ),
-          ),
+                  ),
+                ),
         ),
-
-        // Action buttons at bottom
-        _buildActionButtons(),
-      ],
+      ),
     );
   }
 
@@ -524,7 +558,7 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       // Name and age
                       Text(
-                        '${user.username}, ${user.calculatedAge}',
+                        '${TextUtils.formatUsername(user.username)}, ${user.calculatedAge}',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 28,
@@ -661,91 +695,6 @@ class _HomePageState extends State<HomePage> {
                 ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildActionButtons() {
-    return Positioned(
-      left: 0,
-      right: 0,
-      bottom: 120, // Positioned above the liquid glass navbar
-      child: Container(
-        margin: EdgeInsets.symmetric(horizontal: 40),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            // Dislike button
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: FloatingActionButton(
-                heroTag: "dislike",
-                onPressed: () {
-                  controller.swipe(CardSwiperDirection.left);
-                },
-                backgroundColor: Colors.white,
-                child: Icon(Icons.close, color: Colors.red, size: 30),
-                elevation: 0,
-              ),
-            ),
-
-            // Super like button
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: FloatingActionButton(
-                heroTag: "superlike",
-                onPressed: () {
-                  controller.swipe(CardSwiperDirection.top);
-                },
-                backgroundColor: Colors.white,
-                child: Icon(Icons.star, color: Colors.blue, size: 24),
-                elevation: 0,
-                mini: true,
-              ),
-            ),
-
-            // Like button
-            Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: FloatingActionButton(
-                heroTag: "like",
-                onPressed: () {
-                  controller.swipe(CardSwiperDirection.right);
-                },
-                backgroundColor: Colors.white,
-                child: Icon(Icons.favorite, color: Colors.green, size: 30),
-                elevation: 0,
-              ),
-            ),
-          ],
         ),
       ),
     );
