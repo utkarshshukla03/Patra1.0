@@ -1,98 +1,79 @@
-# Source code (Vercel will build from these)# Environment files (sensitive)# Flutter source (keep build artifacts in root)
+# ========================================
+# 🚀 VERCEL IGNORE - FLUTTER WEB DEPLOYMENT
+# ========================================
+# This file tells Vercel what NOT to deploy
+# Keep source code, ignore build artifacts and platform-specific files
 
-lib/
-
-android/.env.dart_tool/
-
+# ========================================
+# 📱 PLATFORM-SPECIFIC FOLDERS (IGNORE)
+# ========================================
+# These are not needed for web deployment
+android/
 ios/
-
-linux/api_keys.env.packages
-
+linux/
 macos/
+windows/
 
-windows/.env.example.pub/
-
-test/
-
-web/api_keys.env.examplelib/
-
-
-
-# Development filestest/
-
+# ========================================
+# 🔧 DEVELOPMENT FILES (IGNORE)
+# ========================================
 .vscode/
-
-.idea/# Build artifacts that shouldn't be served directlyweb/
-
+.idea/
 *.iml
+.DS_Store
+Thumbs.db
 
-analysis_options.yamlbuild/android/
-
+# ========================================
+# 🏗️ BUILD ARTIFACTS (IGNORE)
+# ========================================
 .dart_tool/
-
-.flutter-plugins.dart_tool/ios/
-
+.flutter-plugins
 .flutter-plugins-dependencies
-
-.metadata.flutter-pluginslinux/
-
 .packages
+.metadata
+build/
+# Note: build/web/ will be created by Vercel during deployment
 
-.flutter-plugins-dependenciesmacos/
+# ========================================
+# 🔐 SENSITIVE FILES (IGNORE)
+# ========================================
+.env
+api_keys.env
+*.env.local
+**/.env
 
-# Configuration files (these will be in build/web/assets)
-
-firestore.rules.metadatawindows/
-
-firestore_production.rules
-
-firestore_rules.rules.packages
-
-storage.rules
-
-# Flutter build (except root files)
-
-# Scripts and backend
+# ========================================
+# 📋 DOCUMENTATION (IGNORE - OPTIONAL)
+# ========================================
+README.md
+LICENSE
+*.md
 *.bat
 
-# Documentation
-README.md
-
-LICENSE
-*.iml.vscode/
-
-.idea/
-
-# Firebase config (backend only)*.iml
-
+# ========================================
+# 🔥 FIREBASE CONFIG (IGNORE BACKEND ONLY)
+# ========================================
 .firebaserc
-
-firebase.json# OS
-
-firestore.rules.DS_Store
-
-firestore_production.rulesThumbs.db
-
+firebase.json
+firestore.rules
+firestore_production.rules
 firestore_rules.rules
+storage.rules
 
-storage.rules# Others
+# ========================================
+# ✅ KEEP THESE FOR DEPLOYMENT (DO NOT IGNORE)
+# ========================================
+# lib/                    ← SOURCE CODE (KEEP!)
+# assets/                 ← ASSETS (KEEP!)
+# pubspec.yaml           ← PROJECT CONFIG (KEEP!)
+# web/                   ← WEB CONFIG (KEEP!)
+# font/                  ← FONTS (KEEP!)
 
-*.log
-
-# Others
-*.log
-*.tmp
-*.temp
-
-# Keep these files in root for Vercel deployment
-
-# License and docs (optional)!index.html
-
-LICENSE!*.js
-
-README.md!*.json
-!*.png
-!*.ico
-!assets/
-!canvaskit/
-!icons/
+# ========================================
+# 📝 USAGE NOTES
+# ========================================
+# - Vercel needs lib/ folder for Flutter source code
+# - Vercel needs assets/ folder for images, animations, etc.
+# - Vercel needs pubspec.yaml for dependencies
+# - Vercel will generate build/web/ during deployment
+# - Environment variables should be set in Vercel dashboard
