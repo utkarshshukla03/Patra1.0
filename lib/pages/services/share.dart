@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:pretty_qr_code/pretty_qr_code.dart';
-import 'package:qr_code_scanner/qr_code_scanner.dart';
+// import 'package:pretty_qr_code/pretty_qr_code.dart';  // Temporarily disabled for web
+// import 'package:qr_code_scanner/qr_code_scanner.dart'; // Not web compatible
+import 'package:qr_flutter/qr_flutter.dart'; // Web-compatible QR generator
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../services/qr_share_service.dart';
-import '../../widgets/qr_scanner_page.dart';
+// import '../../widgets/qr_scanner_page.dart';            // Temporarily disabled for web
 
 class ShareProfile extends StatefulWidget {
   const ShareProfile({super.key});
@@ -107,13 +108,20 @@ class _ShareProfileState extends State<ShareProfile>
   }
 
   void _openQRScanner() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => QRScannerPage(
-          onScanSuccess: _handleQRScanResult,
-        ),
+    // TODO: Implement web-compatible QR scanner
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('QR Scanner not available in web version'),
+        backgroundColor: Colors.orange,
       ),
     );
+    // Navigator.of(context).push(
+    //   MaterialPageRoute(
+    //     builder: (context) => QRScannerPage(
+    //       onScanSuccess: _handleQRScanResult,
+    //     ),
+    //   ),
+    // );
   }
 
   Future<void> _handleQRScanResult(String qrData) async {
@@ -350,12 +358,12 @@ class _ShareProfileState extends State<ShareProfile>
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: PrettyQr(
+                      child: QrImageView(
                         data: _userQRData!,
                         size: 276,
-                        roundEdges: true,
-                        elementColor: Colors.grey.shade800,
-                        errorCorrectLevel: QrErrorCorrectLevel.M,
+                        backgroundColor: Colors.white,
+                        foregroundColor: Colors.grey.shade800,
+                        errorCorrectionLevel: QrErrorCorrectLevel.M,
                       ),
                     ),
                   ),
